@@ -149,9 +149,11 @@ let speedSamples = [];
 let topSpeed = 0;
 let lastAlertTimes = {};
 
+let wakeListening = false;
+let wakeRecognition = null;
+
 function getTimeGreeting() {
   const hour = new Date().getHours();
-
   if (hour < 12) return "morning";
   if (hour < 17) return "afternoon";
   return "evening";
@@ -231,7 +233,7 @@ function updateVoiceLabel() {
 
 function testCurrentVoice() {
   const mode = voiceModes[currentVoiceMode];
-  speak(`${mode.label} selected. Jetta T D I Black Diesel command system is online.`);
+  speak(`${mode.label} selected. Jett T D Black Diesel command system is online.`);
 }
 
 function speakCurrentStartup() {
@@ -288,7 +290,6 @@ function alertOnce(key, text, cooldownMs = 12000) {
 function setValue(id, value) {
   const el = document.getElementById(id);
   if (!el) return;
-
   el.textContent = value;
 }
 
@@ -335,7 +336,6 @@ function updateSpeedStats(speed) {
   }
 
   const avg = Math.round(speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length);
-
   setValue("avgSpeed", `${avg} MPH`);
 }
 
@@ -387,17 +387,31 @@ function listenCommand() {
     handleVoiceCommand(command);
   };
 
-  recognition.onerror = () => {
-    speak("Voice command failed. Try again.");
+  recognition.onerror = (event) => {
+    console.log("Voice command error:", event.error);
+
+    if (event.error === "no-speech") {
+      speak("I did not hear a command.");
+    } else if (event.error === "audio-capture") {
+      speak("Microphone is not available.");
+    } else if (event.error === "not-allowed") {
+      speak("Microphone permission is blocked.");
+    } else {
+      speak("Voice command failed.");
+    }
   };
 
   setTimeout(() => {
-    recognition.start();
-  }, 600);
+    try {
+      recognition.start();
+    } catch (error) {
+      console.log("Command start error:", error);
+    }
+  }, 900);
 }
 
 function handleVoiceCommand(command) {
-  if (command.includes("boost")) {
+  if (command.includes("boost") || command.includes("turbo")) {
     speakModeLine("boost");
     return;
   }
@@ -412,7 +426,7 @@ function handleVoiceCommand(command) {
     return;
   }
 
-  if (command.includes("status") || command.includes("systems")) {
+  if (command.includes("status") || command.includes("systems") || command.includes("how's the car")) {
     speakStatus();
     return;
   }
@@ -442,6 +456,21 @@ function handleVoiceCommand(command) {
     return;
   }
 
+  if (command.includes("butler")) {
+    setVoiceMode("butler");
+    return;
+  }
+
+  if (command.includes("robot")) {
+    setVoiceMode("robot");
+    return;
+  }
+
+  if (command.includes("drill")) {
+    setVoiceMode("drill");
+    return;
+  }
+
   if (command.includes("stealth")) {
     setThemeMode("stealth");
     return;
@@ -462,12 +491,100 @@ function handleVoiceCommand(command) {
     return;
   }
 
+  if (command.includes("oem")) {
+    setThemeMode("oemBlue");
+    return;
+  }
+
   if (command.includes("fullscreen") || command.includes("full screen")) {
     goFullscreen();
     return;
   }
 
   speak(`Command not recognized. I heard ${command}.`);
+}
+
+function startWakeWord() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    speak("Wake word is not supported in this browser.");
+    return;
+  }
+
+  if (wakeListening) {
+    speak("Hey Jett wake word is already active.");
+    return;
+  }
+
+  wakeRecognition = new SpeechRecognition();
+  wakeRecognition.lang = "en-US";
+  wakeRecognition.continuous = true;
+  wakeRecognition.interimResults = false;
+
+  wakeRecognition.onresult = (event) => {
+    const transcript =
+      event.results[event.results.length - 1][0].transcript.toLowerCase();
+
+    console.log("Wake heard:", transcript);
+
+    if (
+      transcript.includes("hey jett") ||
+      transcript.includes("hey jet") ||
+      transcript.includes("black diesel") ||
+      transcript.includes("jett command") ||
+      transcript.includes("jet command")
+    ) {
+      wakeListening = false;
+
+      if (wakeRecognition) {
+        wakeRecognition.stop();
+      }
+
+      speak("Awaiting command.");
+
+      setTimeout(() => {
+        listenCommand();
+      }, 1600);
+    }
+  };
+
+  wakeRecognition.onerror = (event) => {
+    console.log("Wake word error:", event.error);
+    wakeListening = false;
+  };
+
+  wakeRecognition.onend = () => {
+    if (wakeListening) {
+      setTimeout(() => {
+        try {
+          wakeRecognition.start();
+        } catch (error) {
+          console.log("Wake restart error:", error);
+        }
+      }, 1000);
+    }
+  };
+
+  wakeListening = true;
+
+  try {
+    wakeRecognition.start();
+    speak("Hey Jett wake word active.");
+  } catch (error) {
+    console.log("Wake start error:", error);
+    speak("Wake word could not start.");
+  }
+}
+
+function stopWakeWord() {
+  wakeListening = false;
+
+  if (wakeRecognition) {
+    wakeRecognition.stop();
+  }
+
+  speak("Hey Jett wake word disabled.");
 }
 
 function startSystem() {
@@ -538,85 +655,6 @@ function resetTrip() {
   speak("Trip data reset.");
 }
 
-let wakeListening = false;
-let wakeRecognition = null;
-
-function startWakeWord() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if (!SpeechRecognition) {
-    speak("Wake word is not supported in this browser.");
-    return;
-  }
-
-  if (wakeListening) {
-    speak("Hey Jett wake word is already active.");
-    return;
-  }
-
-  wakeRecognition = new SpeechRecognition();
-  wakeRecognition.lang = "en-US";
-  wakeRecognition.continuous = true;
-  wakeRecognition.interimResults = false;
-
-  wakeRecognition.onresult = (event) => {
-    const transcript =
-      event.results[event.results.length - 1][0].transcript.toLowerCase();
-
-    console.log("Wake heard:", transcript);
-
-    if (
-      transcript.includes("hey jett") ||
-      transcript.includes("hey jet") ||
-      transcript.includes("black diesel") ||
-      transcript.includes("jett command") ||
-      transcript.includes("jet command")
-    ) {
-      speak("Awaiting command.");
-
-      setTimeout(() => {
-        listenCommand();
-      }, 1000);
-    }
-  };
-
-  wakeRecognition.onerror = () => {
-    wakeListening = false;
-
-    setTimeout(() => {
-      startWakeWord();
-    }, 1500);
-  };
-
-  wakeRecognition.onend = () => {
-    if (wakeListening) {
-      setTimeout(() => {
-        try {
-          wakeRecognition.start();
-        } catch (error) {}
-      }, 1000);
-    }
-  };
-
-  wakeListening = true;
-
-  try {
-    wakeRecognition.start();
-    speak("Hey Jett wake word active.");
-  } catch (error) {
-    speak("Wake word could not start.");
-  }
-}
-
-function stopWakeWord() {
-  wakeListening = false;
-
-  if (wakeRecognition) {
-    wakeRecognition.stop();
-  }
-
-  speak("Hey Jett wake word disabled.");
-}
 setInterval(updateTripTime, 1000);
 
 document.addEventListener("DOMContentLoaded", () => {
