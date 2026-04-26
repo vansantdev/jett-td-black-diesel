@@ -538,6 +538,85 @@ function resetTrip() {
   speak("Trip data reset.");
 }
 
+let wakeListening = false;
+let wakeRecognition = null;
+
+function startWakeWord() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    speak("Wake word is not supported in this browser.");
+    return;
+  }
+
+  if (wakeListening) {
+    speak("Hey Jett wake word is already active.");
+    return;
+  }
+
+  wakeRecognition = new SpeechRecognition();
+  wakeRecognition.lang = "en-US";
+  wakeRecognition.continuous = true;
+  wakeRecognition.interimResults = false;
+
+  wakeRecognition.onresult = (event) => {
+    const transcript =
+      event.results[event.results.length - 1][0].transcript.toLowerCase();
+
+    console.log("Wake heard:", transcript);
+
+    if (
+      transcript.includes("hey jett") ||
+      transcript.includes("hey jet") ||
+      transcript.includes("black diesel") ||
+      transcript.includes("jett command") ||
+      transcript.includes("jet command")
+    ) {
+      speak("Awaiting command.");
+
+      setTimeout(() => {
+        listenCommand();
+      }, 1000);
+    }
+  };
+
+  wakeRecognition.onerror = () => {
+    wakeListening = false;
+
+    setTimeout(() => {
+      startWakeWord();
+    }, 1500);
+  };
+
+  wakeRecognition.onend = () => {
+    if (wakeListening) {
+      setTimeout(() => {
+        try {
+          wakeRecognition.start();
+        } catch (error) {}
+      }, 1000);
+    }
+  };
+
+  wakeListening = true;
+
+  try {
+    wakeRecognition.start();
+    speak("Hey Jett wake word active.");
+  } catch (error) {
+    speak("Wake word could not start.");
+  }
+}
+
+function stopWakeWord() {
+  wakeListening = false;
+
+  if (wakeRecognition) {
+    wakeRecognition.stop();
+  }
+
+  speak("Hey Jett wake word disabled.");
+}
 setInterval(updateTripTime, 1000);
 
 document.addEventListener("DOMContentLoaded", () => {
