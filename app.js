@@ -128,6 +128,8 @@ let wakeRecognition = null;
 let gpsWatchId = null;
 let obdLive = false;
 let obdTimer = null;
+let voiceVolume = 1;
+let voiceMuted = false;
 
 let performance = {
   zeroToSixtyActive: false,
@@ -179,6 +181,8 @@ window.speechSynthesis.onvoiceschanged = loadSystemVoices;
 loadSystemVoices();
 
 function speak(text, overrideMode = null) {
+  if (voiceMuted) return;
+
   const modeKey = overrideMode || currentVoiceMode;
   const mode = voiceModes[modeKey] || voiceModes.deepCommand;
   const msg = new SpeechSynthesisUtterance(fillLine(text));
@@ -189,7 +193,7 @@ function speak(text, overrideMode = null) {
 
   msg.rate = mode.rate;
   msg.pitch = mode.pitch;
-  msg.volume = 1;
+  msg.volume = voiceVolume;
 
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(msg);
@@ -1267,6 +1271,63 @@ setInterval(updateTripTime, 1000);
 setInterval(syncNavGauges, 1000);
 setInterval(updateHeaderBadges, 1500);
 setInterval(updateCopilotBlocks, 2000);
+
+function logCommand(msg) {
+  const el = document.getElementById("commandLog");
+  if (el) el.textContent = msg;
+}
+
+function playStartupSound() {
+  systemChime();
+  speak("JETT TD systems online.");
+  logCommand("Startup sound played.");
+}
+
+function playWarningTone() {
+  systemChime();
+  setTimeout(() => systemChime(), 220);
+  logCommand("Warning tone played.");
+}
+
+function volumeUp() {
+  voiceVolume = Math.min(1, voiceVolume + 0.1);
+  logCommand(`Voice volume ${Math.round(voiceVolume * 100)} percent.`);
+}
+
+function volumeDown() {
+  voiceVolume = Math.max(0, voiceVolume - 0.1);
+  logCommand(`Voice volume ${Math.round(voiceVolume * 100)} percent.`);
+}
+
+function muteVoice() {
+  voiceMuted = true;
+  logCommand("Voice muted.");
+}
+
+function unmuteVoice() {
+  voiceMuted = false;
+  logCommand("Voice unmuted.");
+  speak("Voice system restored.");
+}
+
+function runSetupWizard() {
+  logCommand("Setup wizard ready.");
+  alert("Setup wizard coming next: vehicle name, make, model, engine, theme, and command identity.");
+}
+
+function exportVehicleProfile() {
+  const data = localStorage.getItem("vehicleProfile") || "No profile saved.";
+  navigator.clipboard.writeText(data);
+  logCommand("Vehicle profile copied to clipboard.");
+}
+
+function factoryReset() {
+  if (confirm("Reset JETT TD settings?")) {
+    localStorage.clear();
+    logCommand("Factory reset complete.");
+    location.reload();
+  }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   updateVoiceLabel();

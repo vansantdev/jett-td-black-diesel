@@ -179,17 +179,52 @@
         </div>
       </section>
 
-      <section id="mediaTab" class="tab">
-        <h2>MEDIA CENTER</h2>
+     <section id="commandTab" class="tab">
+  <h2>COMMAND CENTER</h2>
 
-        <div class="media-panel">
-          <button class="big-btn" onclick="openYouTubeMusic()">OPEN YOUTUBE MUSIC</button>
-          <button class="big-btn" onclick="systemChime()">TEST SYSTEM CHIME</button>
-          <p class="note">
-            YouTube Music opens separately. JETT voice alerts still play through Windows audio.
-          </p>
-        </div>
-      </section>
+  <div class="command-panel">
+
+    <div class="mode-grid">
+      <button onclick="playStartupSound()">STARTUP SOUND</button>
+      <button onclick="systemChime()">SYSTEM CHIME</button>
+      <button onclick="playWarningTone()">WARNING TONE</button>
+      <button onclick="testCurrentVoice()">VOICE TEST</button>
+    </div>
+
+    <h3>VOICE CONTROL</h3>
+
+    <div class="mode-grid">
+      <button onclick="volumeUp()">VOICE +</button>
+      <button onclick="volumeDown()">VOICE -</button>
+      <button onclick="muteVoice()">MUTE VOICE</button>
+      <button onclick="unmuteVoice()">UNMUTE</button>
+    </div>
+
+    <h3>ALERT SYSTEM</h3>
+
+    <div class="mode-grid">
+      <button onclick="toggleAlerts()">TOGGLE ALERTS</button>
+      <button onclick="activateSecurityMode()">SECURITY ARM</button>
+      <button onclick="disableSecurityMode()">SECURITY OFF</button>
+      <button onclick="triggerSecurityScan()">SECURITY SCAN</button>
+    </div>
+
+    <h3>PROFILE</h3>
+
+    <div class="mode-grid">
+      <button onclick="runSetupWizard()">SETUP WIZARD</button>
+      <button onclick="exportVehicleProfile()">EXPORT PROFILE</button>
+      <button onclick="resetTrip()">RESET TRIP</button>
+      <button onclick="factoryReset()">FACTORY RESET</button>
+    </div>
+
+    <div class="copilot-box">
+      <h3>System Log</h3>
+      <p id="commandLog">Command systems standing by.</p>
+    </div>
+
+  </div>
+</section>
 
       <section id="copilotTab" class="tab">
         <h2>AI COPILOT / WEATHER / SECURITY</h2>
@@ -339,7 +374,7 @@
       <nav class="bottom-nav">
         <button onclick="showTab('dash')">DASHBOARD</button>
         <button onclick="showTab('performance')">PERFORMANCE</button>
-        <button onclick="showTab('media')">MEDIA</button>
+        <button onclick="showTab('command')">COMMAND</button>
         <button onclick="showTab('copilot')">COPILOT</button>
         <button onclick="showTab('nav')">NAV</button>
         <button onclick="showTab('settings')">SETTINGS</button>
