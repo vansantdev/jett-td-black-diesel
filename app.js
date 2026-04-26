@@ -1000,6 +1000,7 @@ function showTab(tabName) {
     performance: "PERFORMANCE SYSTEMS",
     media: "MEDIA CENTER",
     copilot: "AI COPILOT",
+    nav: "NAVIGATION MODE",
     settings: "SYSTEM SETTINGS"
   };
 
