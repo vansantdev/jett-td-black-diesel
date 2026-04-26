@@ -2,133 +2,136 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>JETT TD Black Diesel</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <main class="app">
 
-<section class="startup" id="startup">
-  <div class="boot-card">
-    <h1>JETT TD</h1>
-    <h2>BLACK DIESEL</h2>
-    <div class="scanner"><span></span></div>
-    <div class="status" id="status">SYSTEM STANDBY</div>
-    <button onclick="startSystem()">START SYSTEM</button>
-  </div>
-</section>
-
-<section class="dashboard hidden" id="dashboard">
-  <header class="dash-header">
-    <div>
-      <p class="small">JETT TD</p>
-      <h3 id="pageTitle">BLACK DIESEL COMMAND</h3>
-    </div>
-
-    <div class="top-info">
-      <div class="info-box"><span>OUTSIDE</span><strong id="outsideTemp">72°F</strong></div>
-      <div class="info-box"><span>TIME</span><strong id="clock">--:--</strong><small id="dateText">---</small></div>
-      <div class="system-pill" id="dashStatus">SYSTEM ONLINE</div>
-    </div>
-  </header>
-
-  <main class="page active-page" id="dashboardPage">
-    <section class="gauge-grid">
-      <div class="gauge-card main-speed">
-        <p>SPEED</p>
-        <div class="big-number" id="speed">0</div>
-        <span>MPH</span>
-      </div>
-      <div class="gauge-card"><p>RPM</p><div class="number" id="rpm">850</div><span>RPM</span></div>
-      <div class="gauge-card"><p>BOOST</p><div class="number" id="boost">0.0</div><span>PSI</span></div>
-      <div class="gauge-card"><p>COOLANT</p><div class="number" id="coolant">176</div><span>°F</span></div>
-    </section>
-
-    <section class="stats-grid">
-      <div class="mini-card"><p>TRIP TIME</p><h4 id="tripTime">00:00</h4></div>
-      <div class="mini-card"><p>TOP SPEED</p><h4 id="topSpeed">0 MPH</h4></div>
-      <div class="mini-card"><p>AVG SPEED</p><h4 id="avgSpeed">0 MPH</h4></div>
-      <div class="mini-card"><p>SOURCE</p><h4 id="speedSource">DEMO</h4></div>
-    </section>
-  </main>
-
-  <main class="page" id="performancePage">
-    <section class="panel-grid">
-      <div class="feature-card"><p>0-60 TIMER</p><h4 id="zeroSixty">ARMED</h4><span>GPS-based later</span></div>
-      <div class="feature-card"><p>PEAK BOOST</p><h4 id="peakBoost">0.0 PSI</h4><span>Demo until Vgate</span></div>
-      <div class="feature-card"><p>RPM SWEEP</p><h4 id="rpmSweep">850 RPM</h4><span>Demo animation</span></div>
-      <div class="feature-card"><p>DRIVE MODE</p><h4>BLACK DIESEL</h4><span>Performance display active</span></div>
-    </section>
-  </main>
-
-  <main class="page" id="mediaPage">
-    <section class="wide-card">
-      <p>MEDIA CENTER</p>
-      <h4 id="mediaMain">No audio loaded</h4>
-      <span>Select a local music file from the Surface.</span>
-
-      <input class="file-input" type="file" id="audioFile" accept="audio/*" onchange="loadAudio(event)" />
-
-      <audio id="audioPlayer" controls></audio>
-
-      <div class="media-buttons">
-        <button onclick="playAudio()">PLAY</button>
-        <button onclick="pauseAudio()">PAUSE</button>
-        <button onclick="fakeMusic()">RANDOM MODE</button>
+    <section id="bootScreen" class="boot-screen">
+      <div class="boot-card">
+        <h1>JETT TD</h1>
+        <p>BLACK DIESEL</p>
+        <span>SYSTEM STANDBY</span>
+        <button onclick="startSystem()">START SYSTEM</button>
       </div>
     </section>
-  </main>
 
-  <main class="page" id="mapsPage">
-    <section class="wide-card map-card">
-      <p>GPS / MAPS</p>
-      <h4 id="gpsStatus">GPS Standby</h4>
-      <span id="gpsCoords">Press GPS SPEED to request location data.</span>
+    <section id="dashboard" class="dashboard hidden">
+      <header class="top-bar">
+        <div>
+          <h1>JETT TD</h1>
+          <p>BLACK DIESEL COMMAND</p>
+        </div>
 
-      <div class="map-actions">
-        <button onclick="startGpsSpeed()">START GPS</button>
-        <button onclick="openGoogleMaps()">OPEN GOOGLE MAPS</button>
-      </div>
+        <div class="top-actions">
+          <button onclick="speakCurrentStartup()">VOICE TEST</button>
+          <button onclick="showTab('settings')">SETTINGS</button>
+        </div>
+      </header>
 
-      <iframe id="mapFrame" class="map-frame" src="https://www.google.com/maps?q=Camden,PA&output=embed" loading="lazy"></iframe>
+      <section id="dashTab" class="tab active">
+        <div class="gauge-grid">
+          <div class="gauge glow">
+            <span>SPEED</span>
+            <strong id="speedValue">0</strong>
+            <small>MPH</small>
+          </div>
+
+          <div class="gauge glow">
+            <span>RPM</span>
+            <strong id="rpmValue">850</strong>
+            <small>RPM</small>
+          </div>
+
+          <div class="gauge glow">
+            <span>BOOST</span>
+            <strong id="boostValue">0.0</strong>
+            <small>PSI</small>
+          </div>
+
+          <div class="gauge glow">
+            <span>COOLANT</span>
+            <strong id="coolantValue">176</strong>
+            <small>°F</small>
+          </div>
+
+          <div class="gauge small-gauge">
+            <span>TRIP TIME</span>
+            <strong>00:00</strong>
+          </div>
+
+          <div class="gauge small-gauge">
+            <span>GPS SPEED</span>
+            <strong>STANDBY</strong>
+          </div>
+
+          <div class="gauge small-gauge">
+            <span>AVG SPEED</span>
+            <strong>0 MPH</strong>
+          </div>
+
+          <div class="gauge small-gauge">
+            <span>SOURCE</span>
+            <strong>DEMO</strong>
+          </div>
+        </div>
+
+        <div class="quick-buttons">
+          <button onclick="speak('Boost pressure standing by.')">BOOST CHECK</button>
+          <button onclick="speak('Coolant temperature is currently normal.')">TEMP CHECK</button>
+          <button onclick="speak('GPS speed system standing by.')">GPS STATUS</button>
+          <button onclick="openYouTubeMusic()">YOUTUBE MUSIC</button>
+        </div>
+      </section>
+
+      <section id="performanceTab" class="tab">
+        <h2>PERFORMANCE MODES</h2>
+        <div class="mode-grid">
+          <button onclick="setVoiceMode('race')">RACE MODE</button>
+          <button onclick="setVoiceMode('sport')">SPORT MODE</button>
+          <button onclick="setVoiceMode('mechanic')">MECHANIC MODE</button>
+          <button onclick="setVoiceMode('drill')">DRILL SERGEANT</button>
+        </div>
+      </section>
+
+      <section id="mediaTab" class="tab">
+        <h2>MEDIA</h2>
+        <button class="big-btn" onclick="openYouTubeMusic()">OPEN YOUTUBE MUSIC</button>
+        <p class="note">YouTube Music may open in a new window/tab. Voice alerts will still play through Windows audio.</p>
+      </section>
+
+      <section id="settingsTab" class="tab">
+        <h2>VOICE SETTINGS</h2>
+        <p id="currentVoiceLabel">Current Voice: Deep Command</p>
+
+        <div class="voice-grid">
+          <button onclick="setVoiceMode('male')">Male</button>
+          <button onclick="setVoiceMode('female')">Female</button>
+          <button onclick="setVoiceMode('robot')">Robot</button>
+          <button onclick="setVoiceMode('deepCommand')">Deep Command</button>
+          <button onclick="setVoiceMode('sarcastic')">Funny / Sarcastic</button>
+          <button onclick="setVoiceMode('mechanic')">Mechanic Mode</button>
+          <button onclick="setVoiceMode('butler')">Butler Mode</button>
+          <button onclick="setVoiceMode('drill')">Diesel Drill Sergeant</button>
+          <button onclick="setVoiceMode('race')">Race Mode</button>
+          <button onclick="setVoiceMode('sport')">Sport Mode</button>
+        </div>
+
+        <button class="big-btn" onclick="testCurrentVoice()">TEST CURRENT VOICE</button>
+      </section>
+
+      <nav class="bottom-nav">
+        <button onclick="showTab('dash')">DASHBOARD</button>
+        <button onclick="showTab('performance')">PERFORMANCE</button>
+        <button onclick="showTab('media')">MEDIA</button>
+        <button onclick="showTab('settings')">SETTINGS</button>
+      </nav>
     </section>
+
   </main>
 
-  <main class="page" id="diagnosticsPage">
-    <section class="panel-grid">
-      <div class="feature-card"><p>OBD STATUS</p><h4 id="obdStatus">WAITING</h4><span>Vgate MC+ later</span></div>
-      <div class="feature-card"><p>BATTERY</p><h4 id="batteryVoltage">--.- V</h4><span>OBD later</span></div>
-      <div class="feature-card"><p>CODES</p><h4 id="codes">NO SCAN</h4><span>Future scan page</span></div>
-      <div class="feature-card"><p>SYSTEM</p><h4>READY</h4><span>Frontend online</span></div>
-    </section>
-  </main>
-
-  <main class="page" id="settingsPage">
-    <section class="panel-grid">
-      <div class="feature-card"><p>VOICE</p><h4 id="voiceStatus">ENABLED</h4><button onclick="toggleVoice()">TOGGLE</button></div>
-      <div class="feature-card"><p>THEME</p><h4 id="themeStatus">COLOR SHIFT</h4><button onclick="cycleTheme()">CHANGE</button></div>
-      <div class="feature-card"><p>DISPLAY</p><h4>FULLSCREEN</h4><button onclick="goFullscreen()">OPEN</button></div>
-      <div class="feature-card"><p>TRIP</p><h4>RESET DATA</h4><button onclick="resetTrip()">RESET</button></div>
-    </section>
-  </main>
-
-  <footer class="controls">
-    <button onclick="demoGauges()">DEMO GAUGES</button>
-    <button onclick="startGpsSpeed()">GPS SPEED</button>
-    <button onclick="speakStatus()">VOICE STATUS</button>
-    <button onclick="backToStartup()">BOOT SCREEN</button>
-  </footer>
-
-  <nav class="bottom-nav">
-    <button class="active" onclick="switchTab('dashboard')">DASHBOARD</button>
-    <button onclick="switchTab('performance')">PERFORMANCE</button>
-    <button onclick="switchTab('media')">MEDIA</button>
-    <button onclick="switchTab('maps')">MAPS</button>
-    <button onclick="switchTab('diagnostics')">DIAGNOSTICS</button>
-    <button onclick="switchTab('settings')">SETTINGS</button>
-  </nav>
-</section>
-
-<script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
