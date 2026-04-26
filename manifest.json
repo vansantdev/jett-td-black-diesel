@@ -1,0 +1,29 @@
+{
+  "name": "JETT TD Black Diesel",
+  "short_name": "JETT TD",
+  "description": "Custom vehicle command center for live gauges, diagnostics, navigation, voice alerts, and driver systems.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#03050a",
+  "theme_color": "#00eaff",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
