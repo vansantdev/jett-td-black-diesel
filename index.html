@@ -202,7 +202,16 @@
       </section>
 
         <section id="navTab" class="tab">
-  <h2>NAVIGATION MODE</h2>
+  <div class="nav-header-row">
+    <h2>NAVIGATION MODE</h2>
+
+    <div class="nav-search">
+      <input id="navSearchInput" type="text" placeholder="Enter destination..." />
+      <button onclick="loadDestination()">LOAD</button>
+      <button onclick="openFullGoogleMaps()">OPEN MAPS</button>
+      <button onclick="goHomeNav()">HOME</button>
+    </div>
+  </div>
 
   <div class="nav-layout">
     <div class="map-panel">

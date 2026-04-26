@@ -812,51 +812,175 @@ function listenCommand() {
 }
 
 function handleVoiceCommand(command) {
-  if (command.includes("connect obd") || command.includes("connect o b d")) return connectOBD();
-  if (command.includes("disconnect obd") || command.includes("disconnect o b d")) return disconnectOBD();
-  if (command.includes("scan codes") || command.includes("check codes") || command.includes("diagnostic")) return scanCodes();
+  command = command.toLowerCase().trim();
 
+  // OBD
+  if (command.includes("connect obd") || command.includes("connect o b d")) {
+    return connectOBD();
+  }
+
+  if (command.includes("disconnect obd") || command.includes("disconnect o b d")) {
+    return disconnectOBD();
+  }
+
+  if (command.includes("scan codes") || command.includes("diagnostic")) {
+    return scanCodes();
+  }
+
+  // Navigation
+  if (command.includes("navigate home")) {
+    return goHomeNav();
+  }
+
+  if (command.includes("open maps") || command.includes("google maps")) {
+    return openFullGoogleMaps();
+  }
+
+  if (command.includes("navigation night") || command.includes("nav night")) {
+    return navNightMode();
+  }
+
+  if (command.includes("navigate to")) {
+    const destination = command.replace("navigate to", "").trim();
+    const input = document.getElementById("navSearchInput");
+
+    if (input && destination) {
+      input.value = destination;
+      loadDestination();
+      return;
+    }
+  }
+
+  // Battery / Intake
   if (command.includes("battery") || command.includes("voltage")) {
-    const voltage = document.getElementById("batteryValue")?.textContent || "unknown";
+    const voltage =
+      document.getElementById("batteryValue")?.textContent || "unknown";
+
     return speak(`Battery voltage is ${voltage}.`);
   }
 
   if (command.includes("intake")) {
-    const intake = document.getElementById("intakeValue")?.textContent || "unknown";
+    const intake =
+      document.getElementById("intakeValue")?.textContent || "unknown";
+
     return speak(`Intake temperature is ${intake}.`);
   }
 
-  if (command.includes("boost") || command.includes("turbo")) return speakModeLine("boost");
-  if (command.includes("coolant") || command.includes("temp") || command.includes("temperature")) return speakModeLine("coolant");
-  if (command.includes("gps") || command.includes("speed")) return speakModeLine("gps");
-  if (command.includes("status") || command.includes("systems") || command.includes("how's the car")) return speakStatus();
-  if (command.includes("copilot") || command.includes("how is the car") || command.includes("how's it looking")) return copilotReport();
-  if (command.includes("performance") || command.includes("score")) return speakPerformance();
-  if (command.includes("weather") || command.includes("outside")) return weatherLayer();
-  if (command.includes("music") || command.includes("youtube")) return openYouTubeMusic();
-  if (command.includes("spool")) return toggleSpoolMode();
-  if (command.includes("glow")) return toggleAmbientGlow();
-  if (command.includes("zero to sixty") || command.includes("0 to 60")) return startZeroToSixty();
-  if (command.includes("security")) return toggleSecurityMode();
-  if (command.includes("auto theme")) return toggleAutoTheme();
+  // Standard Checks
+  if (command.includes("boost") || command.includes("turbo")) {
+    return speakModeLine("boost");
+  }
 
+  if (
+    command.includes("coolant") ||
+    command.includes("temp") ||
+    command.includes("temperature")
+  ) {
+    return speakModeLine("coolant");
+  }
+
+  if (command.includes("gps") || command.includes("speed")) {
+    return speakModeLine("gps");
+  }
+
+  if (
+    command.includes("status") ||
+    command.includes("systems") ||
+    command.includes("how's the car") ||
+    command.includes("how is the car")
+  ) {
+    return speakStatus();
+  }
+
+  if (
+    command.includes("copilot") ||
+    command.includes("how's it looking")
+  ) {
+    return copilotReport();
+  }
+
+  if (
+    command.includes("performance") ||
+    command.includes("score")
+  ) {
+    return speakPerformance();
+  }
+
+  if (command.includes("weather") || command.includes("outside")) {
+    return weatherLayer();
+  }
+
+  if (command.includes("music") || command.includes("youtube")) {
+    return openYouTubeMusic();
+  }
+
+  // Modes
+  if (command.includes("spool")) {
+    return toggleSpoolMode();
+  }
+
+  if (command.includes("glow")) {
+    return toggleAmbientGlow();
+  }
+
+  if (
+    command.includes("zero to sixty") ||
+    command.includes("0 to 60")
+  ) {
+    return startZeroToSixty();
+  }
+
+  if (command.includes("security")) {
+    return toggleSecurityMode();
+  }
+
+  if (command.includes("auto theme")) {
+    return toggleAutoTheme();
+  }
+
+  // Voice Modes
   if (command.includes("race")) return setVoiceMode("race");
   if (command.includes("sport")) return setVoiceMode("sport");
   if (command.includes("mechanic")) return setVoiceMode("mechanic");
-  if (command.includes("sarcastic") || command.includes("funny")) return setVoiceMode("sarcastic");
+  if (command.includes("sarcastic") || command.includes("funny")) {
+    return setVoiceMode("sarcastic");
+  }
   if (command.includes("butler")) return setVoiceMode("butler");
   if (command.includes("robot")) return setVoiceMode("robot");
   if (command.includes("drill")) return setVoiceMode("drill");
 
+  // Themes
   if (command.includes("stealth")) return setThemeMode("stealth");
   if (command.includes("red")) return setThemeMode("performanceRed");
-  if (command.includes("amber") || command.includes("orange") || command.includes("gold")) return setThemeMode("dieselAmber");
+  if (
+    command.includes("amber") ||
+    command.includes("orange") ||
+    command.includes("gold")
+  ) {
+    return setThemeMode("dieselAmber");
+  }
+
   if (command.includes("blue")) return setThemeMode("germanBlue");
-  if (command.includes("ice") || command.includes("white")) return setThemeMode("iceWhite");
-  if (command.includes("legacy") || command.includes("color shift")) return setThemeMode("legacy");
+  if (command.includes("ice") || command.includes("white")) {
+    return setThemeMode("iceWhite");
+  }
 
-  if (command.includes("fullscreen") || command.includes("full screen")) return goFullscreen();
+  if (
+    command.includes("legacy") ||
+    command.includes("color shift")
+  ) {
+    return setThemeMode("legacy");
+  }
 
+  // Fullscreen
+  if (
+    command.includes("fullscreen") ||
+    command.includes("full screen")
+  ) {
+    return goFullscreen();
+  }
+
+  // Fallback
   speak(`Command not recognized. I heard ${command}.`);
 }
 
@@ -1023,6 +1147,57 @@ function updateTripTime() {
   const secs = (seconds % 60).toString().padStart(2, "0");
 
   setValue("tripTime", `${mins}:${secs}`);
+}
+
+const homeDestination = "home";
+
+function loadDestination() {
+  const input = document.getElementById("navSearchInput");
+
+  if (!input || !input.value.trim()) {
+    speak("Enter a destination first.");
+    return;
+  }
+
+  const destination = input.value.trim();
+  const map = document.getElementById("mapFrame");
+
+  if (map) {
+    map.src = `https://www.google.com/maps?q=${encodeURIComponent(destination)}&output=embed`;
+  }
+
+  speak(`Navigation map loaded for ${destination}.`);
+}
+
+function openFullGoogleMaps() {
+  const input = document.getElementById("navSearchInput");
+  const destination = input && input.value.trim() ? input.value.trim() : "";
+
+  const url = destination
+    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`
+    : "https://www.google.com/maps";
+
+  window.open(url, "_blank");
+  speak("Opening full Google Maps.");
+}
+
+function goHomeNav() {
+  const input = document.getElementById("navSearchInput");
+
+  if (input) input.value = homeDestination;
+
+  const map = document.getElementById("mapFrame");
+
+  if (map) {
+    map.src = `https://www.google.com/maps?q=${encodeURIComponent(homeDestination)}&output=embed`;
+  }
+
+  speak("Home navigation loaded.");
+}
+
+function navNightMode() {
+  setThemeMode("dieselAmber");
+  speak("Navigation night mode active.");
 }
 
 function syncNavGauges() {
