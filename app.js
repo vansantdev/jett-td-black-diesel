@@ -855,7 +855,7 @@ function startWakeWord() {
 
   wakeRecognition = new SpeechRecognition();
   wakeRecognition.lang = "en-US";
-  wakeRecognition.continuous = true;
+  wakeRecognition.continuous = false;
   wakeRecognition.interimResults = false;
 
   wakeRecognition.onresult = (event) => {
@@ -881,10 +881,21 @@ function startWakeWord() {
     }
   };
 
-  wakeRecognition.onerror = () => {
-    wakeListening = false;
-    updateWakeLabels();
-  };
+  wakeRecognition.onerror = (event) => {
+  console.log("Wake word error:", event.error);
+
+  if (event.error === "no-speech") {
+    if (wakeListening) {
+      setTimeout(() => {
+        try { wakeRecognition.start(); } catch (error) {}
+      }, 800);
+    }
+    return;
+  }
+
+  wakeListening = false;
+  updateWakeLabels();
+};
 
   wakeRecognition.onend = () => {
     if (wakeListening) {
