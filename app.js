@@ -112,10 +112,12 @@ const themeModes = {
 
 let availableVoices = [];
 let selectedSystemVoice = null;
+
 let currentVoiceMode = localStorage.getItem("jettVoiceMode") || "deepCommand";
 let currentThemeMode = localStorage.getItem("jettThemeMode") || "legacy";
 let alertsEnabled = localStorage.getItem("jettAlertsEnabled") !== "false";
 let autoThemeEnabled = localStorage.getItem("jettAutoTheme") === "true";
+let showModeActive = localStorage.getItem("jettShowMode") === "true";
 
 let tripStart = Date.now();
 let speedSamples = [];
@@ -139,6 +141,8 @@ let performance = {
   ambientGlow: true,
   securityMode: false
 };
+
+const homeDestination = "home";
 
 function getTimeGreeting() {
   const hour = new Date().getHours();
@@ -227,6 +231,10 @@ function setValue(id, value) {
   setTimeout(() => el.classList.remove("value-pop"), 220);
 }
 
+function getText(id, fallback = "") {
+  return document.getElementById(id)?.textContent || fallback;
+}
+
 function speakModeLine(type) {
   const mode = voiceModes[currentVoiceMode] || voiceModes.deepCommand;
   speak(mode[type] || "System ready.");
@@ -244,8 +252,7 @@ function setVoiceMode(modeName) {
 }
 
 function updateVoiceLabel() {
-  const label = document.getElementById("currentVoiceLabel");
-  if (label) label.textContent = `Current Voice: ${voiceModes[currentVoiceMode].label}`;
+  setValue("currentVoiceLabel", `Current Voice: ${voiceModes[currentVoiceMode].label}`);
 }
 
 function testCurrentVoice() {
@@ -276,40 +283,30 @@ function applyTheme() {
   if (performance.securityMode) document.body.classList.add("security-mode");
   if (autoThemeEnabled) document.body.classList.add("auto-theme-on");
 
-  const label = document.getElementById("currentThemeLabel");
-  if (label) label.textContent = `Current Theme: ${themeModes[currentThemeMode].label}`;
+  setValue("currentThemeLabel", `Current Theme: ${themeModes[currentThemeMode].label}`);
 }
 
 function toggleAlerts() {
   alertsEnabled = !alertsEnabled;
   localStorage.setItem("jettAlertsEnabled", alertsEnabled ? "true" : "false");
-  updateAlertLabel();
+  updateSystemLabels();
   speak(alertsEnabled ? "Driving alerts enabled." : "Driving alerts disabled.");
-}
-
-function updateAlertLabel() {
-  const label = document.getElementById("alertStatus");
-  if (label) label.textContent = `Driving Alerts: ${alertsEnabled ? "Enabled" : "Disabled"}`;
 }
 
 function toggleAutoTheme() {
   autoThemeEnabled = !autoThemeEnabled;
   localStorage.setItem("jettAutoTheme", autoThemeEnabled ? "true" : "false");
-  updateAutoThemeLabel();
+  updateSystemLabels();
   applyTheme();
   speak(autoThemeEnabled ? "Auto theme logic enabled." : "Auto theme logic disabled.");
 }
 
-function updateAutoThemeLabel() {
-  const label = document.getElementById("autoThemeStatus");
-  if (label) label.textContent = `Auto Theme: ${autoThemeEnabled ? "Enabled" : "Disabled"}`;
-}
-
-function updateWakeLabels() {
-  const label = document.getElementById("wakeStatus");
-  const top = document.getElementById("wakeStatusTop");
-  if (label) label.textContent = `Wake Word: ${wakeListening ? "On" : "Off"}`;
-  if (top) top.textContent = wakeListening ? "WAKE ON" : "WAKE OFF";
+function updateSystemLabels() {
+  setValue("alertStatus", `Driving Alerts: ${alertsEnabled ? "Enabled" : "Disabled"}`);
+  setValue("autoThemeStatus", `Auto Theme: ${autoThemeEnabled ? "Enabled" : "Disabled"}`);
+  setValue("wakeStatus", `Wake Word: ${wakeListening ? "On" : "Off"}`);
+  setValue("wakeStatusTop", wakeListening ? "WAKE ON" : "WAKE OFF");
+  setValue("showModeStatus", `Show Mode: ${showModeActive ? "On" : "Off"}`);
 }
 
 function alertOnce(key, text, cooldownMs = 12000) {
@@ -331,6 +328,73 @@ function markAlert(id, active) {
 
   if (active) el.classList.add("value-alert");
   else el.classList.remove("value-alert");
+}
+
+function updateHeaderBadges() {
+  const gps = getText("gpsStatus", "STANDBY");
+  const weather = getText("weatherStatus", "READY");
+  const battery = getText("batteryValue", "-- V");
+
+  setValue("gpsHeaderStatus", `GPS ${gps}`);
+  setValue("weatherHeaderStatus", weather === "READY" ? "WEATHER READY" : weather);
+  setValue("batteryHeaderStatus", `BATTERY ${battery}`);
+}
+
+function updateCopilotBlocks() {
+  const rpm = Number(getText("rpmValue", "850"));
+  const coolant = Number(getText("coolantValue", "176"));
+  const boost = Number(getText("boostValue", "0"));
+  const batteryRaw = getText("batteryValue", "-- V").replace("V", "").trim();
+  const battery = Number(batteryRaw);
+
+  if (coolant >= 215) {
+    setValue("engineHealthStatus", "HOT");
+    setValue("engineHealthNote", "Coolant elevated. Ease off and monitor.");
+  } else if (rpm >= 3600) {
+    setValue("engineHealthStatus", "HIGH RPM");
+    setValue("engineHealthNote", "RPM elevated. Shift or back off.");
+  } else {
+    setValue("engineHealthStatus", "STABLE");
+    setValue("engineHealthNote", "Coolant and RPM normal.");
+  }
+
+  if (boost >= 18) {
+    setValue("turboHealthStatus", "HIGH BOOST");
+    setValue("turboHealthNote", "Turbo pressure elevated.");
+  } else if (boost > 0) {
+    setValue("turboHealthStatus", "ACTIVE");
+    setValue("turboHealthNote", `Boost currently ${boost.toFixed ? boost.toFixed(1) : boost} PSI.`);
+  } else {
+    setValue("turboHealthStatus", "READY");
+    setValue("turboHealthNote", "Boost monitor standing by.");
+  }
+
+  if (!Number.isFinite(battery)) {
+    setValue("powerHealthStatus", "UNKNOWN");
+    setValue("powerHealthNote", "Waiting for battery voltage.");
+  } else if (battery < 12.2) {
+    setValue("powerHealthStatus", "LOW");
+    setValue("powerHealthNote", "Battery voltage is low.");
+  } else if (battery >= 13.2) {
+    setValue("powerHealthStatus", "CHARGING");
+    setValue("powerHealthNote", "Alternator voltage looks good.");
+  } else {
+    setValue("powerHealthStatus", "OK");
+    setValue("powerHealthNote", "Battery voltage acceptable.");
+  }
+
+  const warnings = [];
+  if (coolant >= 215) warnings.push("coolant");
+  if (boost >= 18) warnings.push("boost");
+  if (rpm >= 3600) warnings.push("RPM");
+
+  if (warnings.length) {
+    setValue("driveHealthStatus", "CAUTION");
+    setValue("driveHealthNote", `Watch ${warnings.join(", ")}.`);
+  } else {
+    setValue("driveHealthStatus", "READY");
+    setValue("driveHealthNote", "No active warnings.");
+  }
 }
 
 function autoThemeLogic(speed, rpm, boost, coolant) {
@@ -359,6 +423,7 @@ function checkDrivingAlerts(speed, rpm, boost, coolant) {
   if (coolant >= 215) alertOnce("coolant", "Warning. Coolant temperature is high.");
 
   autoThemeLogic(speed, rpm, boost, coolant);
+  updateCopilotBlocks();
 }
 
 function checkBatteryAlert(voltage) {
@@ -368,6 +433,9 @@ function checkBatteryAlert(voltage) {
   markAlert("batteryValue", lowBattery);
 
   if (lowBattery) alertOnce("battery", "Battery voltage low.");
+
+  updateCopilotBlocks();
+  updateHeaderBadges();
 }
 
 function updateSpeedStats(speed) {
@@ -385,8 +453,8 @@ function updateSpeedStats(speed) {
 }
 
 function updatePerformanceScores(speed) {
-  const rpm = Number(document.getElementById("rpmValue")?.textContent || 850);
-  const boost = Number(document.getElementById("boostValue")?.textContent || 0);
+  const rpm = Number(getText("rpmValue", "850"));
+  const boost = Number(getText("boostValue", "0"));
 
   performance.peakBoost = Math.max(performance.peakBoost, boost);
   performance.maxRpm = Math.max(performance.maxRpm, rpm);
@@ -404,6 +472,8 @@ function updatePerformanceScores(speed) {
   setValue("maxRpm", `${Math.round(performance.maxRpm)} RPM`);
   setValue("driveScore", performance.drivingScore);
   setValue("ecoScore", `Eco ${performance.ecoScore}`);
+
+  updateCopilotBlocks();
 }
 
 function updateAmbientGlow(speed, rpm, boost) {
@@ -434,6 +504,7 @@ function demoGauges() {
   checkDrivingAlerts(speed, rpm, boost, coolant);
   checkBatteryAlert(voltage);
   updateAmbientGlow(speed, rpm, boost);
+  updateHeaderBadges();
 
   if (performance.spoolMode && boost > 12) beep("spool");
 
@@ -463,17 +534,19 @@ function startGpsSpeed() {
 
         updateSpeedStats(mph);
 
-        const rpm = Number(document.getElementById("rpmValue").textContent || 0);
-        const boost = Number(document.getElementById("boostValue").textContent || 0);
-        const coolant = Number(document.getElementById("coolantValue").textContent || 0);
+        const rpm = Number(getText("rpmValue", "0"));
+        const boost = Number(getText("boostValue", "0"));
+        const coolant = Number(getText("coolantValue", "0"));
 
         checkDrivingAlerts(mph, rpm, boost, coolant);
         updateAmbientGlow(mph, rpm, boost);
         checkZeroToSixty(mph);
+        updateHeaderBadges();
       }
     },
     () => {
       setValue("gpsStatus", "UNAVAILABLE");
+      setValue("gpsHeaderStatus", "GPS OFF");
       speak("GPS permission denied or unavailable.");
     },
     { enableHighAccuracy: true, maximumAge: 500, timeout: 10000 }
@@ -498,16 +571,20 @@ async function weatherLayer() {
       const temp = Math.round(data.current.temperature_2m);
       const code = data.current.weather_code;
 
-      let condition = "clear";
-      if (code >= 1 && code <= 3) condition = "cloudy";
-      if (code >= 51 && code <= 67) condition = "rain";
-      if (code >= 71 && code <= 77) condition = "snow";
-      if (code >= 95) condition = "storm";
+      let condition = "CLEAR";
+      if (code >= 1 && code <= 3) condition = "CLOUDY";
+      if (code >= 51 && code <= 67) condition = "RAIN";
+      if (code >= 71 && code <= 77) condition = "SNOW";
+      if (code >= 95) condition = "STORM";
 
-      setValue("weatherStatus", `${temp}°F ${condition.toUpperCase()}`);
-      speak(`Current outside temperature is ${temp} degrees with ${condition} conditions.`);
+      setValue("weatherStatus", `${temp}°F ${condition}`);
+      setValue("weatherHeaderStatus", `${temp}°F ${condition}`);
+      setValue("navWeather", `${temp}°F ${condition}`);
+
+      speak(`Current outside temperature is ${temp} degrees with ${condition.toLowerCase()} conditions.`);
     } catch (error) {
       setValue("weatherStatus", "ERROR");
+      setValue("weatherHeaderStatus", "WEATHER ERROR");
       speak("Weather system failed.");
     }
   }, () => {
@@ -574,6 +651,7 @@ async function readOBDLive() {
     if (!data.connected) {
       setValue("sourceStatus", data.source || "OBD OFFLINE");
       setValue("obdStatus", "OBD OFF");
+      updateHeaderBadges();
       return;
     }
 
@@ -592,18 +670,21 @@ async function readOBDLive() {
       updateSpeedStats(Math.round(data.speed));
     }
 
-    const speed = Number(document.getElementById("speedValue").textContent || 0);
-    const rpm = Number(document.getElementById("rpmValue").textContent || 0);
-    const boost = Number(document.getElementById("boostValue").textContent || 0);
-    const coolant = Number(document.getElementById("coolantValue").textContent || 0);
+    const speed = Number(getText("speedValue", "0"));
+    const rpm = Number(getText("rpmValue", "0"));
+    const boost = Number(getText("boostValue", "0"));
+    const coolant = Number(getText("coolantValue", "0"));
 
     checkDrivingAlerts(speed, rpm, boost, coolant);
     checkBatteryAlert(data.voltage);
     updateAmbientGlow(speed, rpm, boost);
     checkZeroToSixty(speed);
+    syncNavGauges();
+    updateHeaderBadges();
   } catch (error) {
     setValue("sourceStatus", "BRIDGE LOST");
     setValue("obdStatus", "LOST");
+    updateHeaderBadges();
   }
 }
 
@@ -692,10 +773,9 @@ function toggleAmbientGlow() {
   speak(performance.ambientGlow ? "Ambient drive glow enabled." : "Ambient drive glow disabled.");
 }
 
-let showModeActive = false;
-
 function activateShowMode() {
   showModeActive = !showModeActive;
+  localStorage.setItem("jettShowMode", showModeActive ? "true" : "false");
 
   if (showModeActive) {
     performance.spoolMode = false;
@@ -711,6 +791,8 @@ function activateShowMode() {
     applyTheme();
     speak("Show mode disabled.");
   }
+
+  updateSystemLabels();
 }
 
 function speakPerformance() {
@@ -718,28 +800,27 @@ function speakPerformance() {
 }
 
 function speakStatus() {
-  const speed = document.getElementById("speedValue").textContent;
-  const rpm = document.getElementById("rpmValue").textContent;
-  const boost = document.getElementById("boostValue").textContent;
-  const coolant = document.getElementById("coolantValue").textContent;
-  const battery = document.getElementById("batteryValue").textContent;
+  const speed = getText("speedValue", "0");
+  const rpm = getText("rpmValue", "0");
+  const boost = getText("boostValue", "0");
+  const coolant = getText("coolantValue", "0");
+  const battery = getText("batteryValue", "-- V");
+  const weather = getText("weatherStatus", "READY");
 
-  speak(`Current speed ${speed} miles per hour. Engine speed ${rpm} R P M. Boost pressure ${boost} P S I. Coolant temperature ${coolant} degrees. Battery ${battery}.`);
+  speak(`Current speed ${speed} miles per hour. Engine speed ${rpm} R P M. Boost pressure ${boost} P S I. Coolant temperature ${coolant} degrees. Battery ${battery}. Weather ${weather}.`);
 }
 
 function copilotReport() {
-  const coolant = Number(document.getElementById("coolantValue").textContent);
-  const boost = Number(document.getElementById("boostValue").textContent);
-  const rpm = Number(document.getElementById("rpmValue").textContent);
-  const output = document.getElementById("copilotOutput");
+  updateCopilotBlocks();
 
-  let message = "Copilot report. Systems look stable. Coolant normal. Boost normal. No active warnings.";
+  const engine = getText("engineHealthStatus", "stable");
+  const turbo = getText("turboHealthStatus", "ready");
+  const power = getText("powerHealthStatus", "unknown");
+  const drive = getText("driveHealthStatus", "ready");
 
-  if (coolant >= 215) message = "Copilot report. Coolant temperature is elevated. Ease off and monitor temperature.";
-  else if (boost >= 18) message = "Copilot report. Turbo pressure is high. Keep it controlled.";
-  else if (rpm >= 3600) message = "Copilot report. R P M is high. Shift or back off.";
+  const message = `Copilot report. Engine ${engine}. Turbo ${turbo}. Power ${power}. Drive status ${drive}.`;
 
-  if (output) output.textContent = message;
+  setValue("copilotOutput", message);
   speak(message);
 }
 
@@ -747,7 +828,6 @@ function activateSecurityMode() {
   if (!performance.securityMode) {
     performance.securityMode = true;
     applyTheme();
-    setValue("securityStatus", "ARMED");
     speak("Security scanner armed. Black diesel watch mode active.");
   } else {
     speak("Security mode already active.");
@@ -758,7 +838,6 @@ function disableSecurityMode() {
   if (performance.securityMode) {
     performance.securityMode = false;
     applyTheme();
-    setValue("securityStatus", "OFF");
     speak("Security scanner disabled.");
   } else {
     speak("Security mode already disabled.");
@@ -772,9 +851,8 @@ function toggleSecurityMode() {
 
 function triggerSecurityScan() {
   beep("warning");
-  const output = document.getElementById("copilotOutput");
   const message = "Security scan complete. No motion threats detected.";
-  if (output) output.textContent = message;
+  setValue("copilotOutput", message);
   speak(message);
 }
 
@@ -814,23 +892,11 @@ function listenCommand() {
 function handleVoiceCommand(command) {
   command = command.toLowerCase().trim();
 
-  // OBD
-  if (command.includes("connect obd") || command.includes("connect o b d")) {
-    return connectOBD();
-  }
+  if (command.includes("connect obd") || command.includes("connect o b d")) return connectOBD();
+  if (command.includes("disconnect obd") || command.includes("disconnect o b d")) return disconnectOBD();
+  if (command.includes("scan codes") || command.includes("check codes") || command.includes("diagnostic")) return scanCodes();
 
-  if (command.includes("disconnect obd") || command.includes("disconnect o b d")) {
-    return disconnectOBD();
-  }
-
-  if (command.includes("scan codes") || command.includes("diagnostic")) {
-    return scanCodes();
-  }
-
-  // Navigation
-  if (command.includes("navigate home")) {
-    return goHomeNav();
-  }
+  if (command.includes("navigate home")) return goHomeNav();
 
   if (command.includes("open maps") || command.includes("google maps")) {
     return openFullGoogleMaps();
@@ -851,136 +917,48 @@ function handleVoiceCommand(command) {
     }
   }
 
-  // Battery / Intake
   if (command.includes("battery") || command.includes("voltage")) {
-    const voltage =
-      document.getElementById("batteryValue")?.textContent || "unknown";
-
+    const voltage = getText("batteryValue", "unknown");
     return speak(`Battery voltage is ${voltage}.`);
   }
 
   if (command.includes("intake")) {
-    const intake =
-      document.getElementById("intakeValue")?.textContent || "unknown";
-
+    const intake = getText("intakeValue", "unknown");
     return speak(`Intake temperature is ${intake}.`);
   }
 
-  // Standard Checks
-  if (command.includes("boost") || command.includes("turbo")) {
-    return speakModeLine("boost");
-  }
+  if (command.includes("boost") || command.includes("turbo")) return speakModeLine("boost");
+  if (command.includes("coolant") || command.includes("temp") || command.includes("temperature")) return speakModeLine("coolant");
+  if (command.includes("gps") || command.includes("speed")) return speakModeLine("gps");
+  if (command.includes("status") || command.includes("systems") || command.includes("how's the car") || command.includes("how is the car")) return speakStatus();
+  if (command.includes("copilot") || command.includes("how's it looking")) return copilotReport();
+  if (command.includes("performance") || command.includes("score")) return speakPerformance();
+  if (command.includes("weather") || command.includes("outside")) return weatherLayer();
+  if (command.includes("music") || command.includes("youtube")) return openYouTubeMusic();
+  if (command.includes("spool")) return toggleSpoolMode();
+  if (command.includes("glow")) return toggleAmbientGlow();
+  if (command.includes("zero to sixty") || command.includes("0 to 60")) return startZeroToSixty();
+  if (command.includes("security")) return toggleSecurityMode();
+  if (command.includes("auto theme")) return toggleAutoTheme();
+  if (command.includes("show mode")) return activateShowMode();
 
-  if (
-    command.includes("coolant") ||
-    command.includes("temp") ||
-    command.includes("temperature")
-  ) {
-    return speakModeLine("coolant");
-  }
-
-  if (command.includes("gps") || command.includes("speed")) {
-    return speakModeLine("gps");
-  }
-
-  if (
-    command.includes("status") ||
-    command.includes("systems") ||
-    command.includes("how's the car") ||
-    command.includes("how is the car")
-  ) {
-    return speakStatus();
-  }
-
-  if (
-    command.includes("copilot") ||
-    command.includes("how's it looking")
-  ) {
-    return copilotReport();
-  }
-
-  if (
-    command.includes("performance") ||
-    command.includes("score")
-  ) {
-    return speakPerformance();
-  }
-
-  if (command.includes("weather") || command.includes("outside")) {
-    return weatherLayer();
-  }
-
-  if (command.includes("music") || command.includes("youtube")) {
-    return openYouTubeMusic();
-  }
-
-  // Modes
-  if (command.includes("spool")) {
-    return toggleSpoolMode();
-  }
-
-  if (command.includes("glow")) {
-    return toggleAmbientGlow();
-  }
-
-  if (
-    command.includes("zero to sixty") ||
-    command.includes("0 to 60")
-  ) {
-    return startZeroToSixty();
-  }
-
-  if (command.includes("security")) {
-    return toggleSecurityMode();
-  }
-
-  if (command.includes("auto theme")) {
-    return toggleAutoTheme();
-  }
-
-  // Voice Modes
   if (command.includes("race")) return setVoiceMode("race");
   if (command.includes("sport")) return setVoiceMode("sport");
   if (command.includes("mechanic")) return setVoiceMode("mechanic");
-  if (command.includes("sarcastic") || command.includes("funny")) {
-    return setVoiceMode("sarcastic");
-  }
+  if (command.includes("sarcastic") || command.includes("funny")) return setVoiceMode("sarcastic");
   if (command.includes("butler")) return setVoiceMode("butler");
   if (command.includes("robot")) return setVoiceMode("robot");
   if (command.includes("drill")) return setVoiceMode("drill");
 
-  // Themes
   if (command.includes("stealth")) return setThemeMode("stealth");
   if (command.includes("red")) return setThemeMode("performanceRed");
-  if (
-    command.includes("amber") ||
-    command.includes("orange") ||
-    command.includes("gold")
-  ) {
-    return setThemeMode("dieselAmber");
-  }
-
+  if (command.includes("amber") || command.includes("orange") || command.includes("gold")) return setThemeMode("dieselAmber");
   if (command.includes("blue")) return setThemeMode("germanBlue");
-  if (command.includes("ice") || command.includes("white")) {
-    return setThemeMode("iceWhite");
-  }
+  if (command.includes("ice") || command.includes("white")) return setThemeMode("iceWhite");
+  if (command.includes("legacy") || command.includes("color shift")) return setThemeMode("legacy");
 
-  if (
-    command.includes("legacy") ||
-    command.includes("color shift")
-  ) {
-    return setThemeMode("legacy");
-  }
+  if (command.includes("fullscreen") || command.includes("full screen")) return goFullscreen();
 
-  // Fullscreen
-  if (
-    command.includes("fullscreen") ||
-    command.includes("full screen")
-  ) {
-    return goFullscreen();
-  }
-
-  // Fallback
   speak(`Command not recognized. I heard ${command}.`);
 }
 
@@ -1006,7 +984,7 @@ function startWakeWord() {
       transcript.includes("jet command")
     ) {
       wakeListening = false;
-      updateWakeLabels();
+      updateSystemLabels();
 
       if (wakeRecognition) wakeRecognition.stop();
 
@@ -1019,20 +997,20 @@ function startWakeWord() {
   };
 
   wakeRecognition.onerror = (event) => {
-  console.log("Wake word error:", event.error);
+    console.log("Wake word error:", event.error);
 
-  if (event.error === "no-speech") {
-    if (wakeListening) {
-      setTimeout(() => {
-        try { wakeRecognition.start(); } catch (error) {}
-      }, 800);
+    if (event.error === "no-speech") {
+      if (wakeListening) {
+        setTimeout(() => {
+          try { wakeRecognition.start(); } catch (error) {}
+        }, 800);
+      }
+      return;
     }
-    return;
-  }
 
-  wakeListening = false;
-  updateWakeLabels();
-};
+    wakeListening = false;
+    updateSystemLabels();
+  };
 
   wakeRecognition.onend = () => {
     if (wakeListening) {
@@ -1043,14 +1021,14 @@ function startWakeWord() {
   };
 
   wakeListening = true;
-  updateWakeLabels();
+  updateSystemLabels();
 
   try {
     wakeRecognition.start();
     speak("Hey Jett wake word active.");
   } catch (error) {
     wakeListening = false;
-    updateWakeLabels();
+    updateSystemLabels();
     speak("Wake word could not start.");
   }
 }
@@ -1058,7 +1036,7 @@ function startWakeWord() {
 function stopWakeWord() {
   wakeListening = false;
   if (wakeRecognition) wakeRecognition.stop();
-  updateWakeLabels();
+  updateSystemLabels();
   speak("Hey Jett wake word disabled.");
 }
 
@@ -1099,9 +1077,10 @@ function cinematicStartup() {
 
         updateVoiceLabel();
         applyTheme();
-        updateAlertLabel();
-        updateAutoThemeLabel();
-        updateWakeLabels();
+        updateSystemLabels();
+        updateHeaderBadges();
+        updateCopilotBlocks();
+        syncNavGauges();
 
         speakCurrentStartup();
       }, 450);
@@ -1114,10 +1093,16 @@ function startSystem() {
 }
 
 function showTab(tabName) {
-  document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.classList.remove("active");
+    tab.classList.remove("fade-in");
+  });
 
   const selected = document.getElementById(`${tabName}Tab`);
-  if (selected) selected.classList.add("active");
+  if (selected) {
+    selected.classList.add("active");
+    setTimeout(() => selected.classList.add("fade-in"), 10);
+  }
 
   const titles = {
     dash: "BLACK DIESEL COMMAND",
@@ -1128,8 +1113,8 @@ function showTab(tabName) {
     settings: "SYSTEM SETTINGS"
   };
 
-  const pageTitle = document.getElementById("pageTitle");
-  if (pageTitle) pageTitle.textContent = titles[tabName] || "BLACK DIESEL COMMAND";
+  setValue("pageTitle", titles[tabName] || "BLACK DIESEL COMMAND");
+  syncNavGauges();
 }
 
 function openYouTubeMusic() {
@@ -1148,8 +1133,6 @@ function updateTripTime() {
 
   setValue("tripTime", `${mins}:${secs}`);
 }
-
-const homeDestination = "home";
 
 function loadDestination() {
   const input = document.getElementById("navSearchInput");
@@ -1201,14 +1184,12 @@ function navNightMode() {
 }
 
 function syncNavGauges() {
-  setValue("navSpeed", `${document.getElementById("speedValue").textContent} MPH`);
-  setValue("navRpm", document.getElementById("rpmValue").textContent);
-  setValue("navBoost", `${document.getElementById("boostValue").textContent} PSI`);
-  setValue("navIntake", document.getElementById("intakeValue").textContent);
-  setValue("navWeather", document.getElementById("weatherStatus").textContent);
+  setValue("navSpeed", `${getText("speedValue", "0")} MPH`);
+  setValue("navRpm", getText("rpmValue", "850"));
+  setValue("navBoost", `${getText("boostValue", "0.0")} PSI`);
+  setValue("navIntake", getText("intakeValue", "-- °F"));
+  setValue("navWeather", getText("weatherStatus", "READY"));
 }
-
-setInterval(syncNavGauges, 1000);
 
 function resetTrip() {
   tripStart = Date.now();
@@ -1227,12 +1208,21 @@ function resetTrip() {
 }
 
 setInterval(updateTripTime, 1000);
+setInterval(syncNavGauges, 1000);
+setInterval(updateHeaderBadges, 1500);
+setInterval(updateCopilotBlocks, 2000);
 
 document.addEventListener("DOMContentLoaded", () => {
   updateVoiceLabel();
   applyTheme();
-  updateAlertLabel();
-  updateAutoThemeLabel();
-  updateWakeLabels();
+  updateSystemLabels();
+  updateHeaderBadges();
+  updateCopilotBlocks();
   updateTripTime();
+  syncNavGauges();
+
+  if (showModeActive) {
+    currentThemeMode = "performanceRed";
+    applyTheme();
+  }
 });

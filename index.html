@@ -35,6 +35,9 @@
         <div class="status-pill-group">
           <span id="sourceStatus" class="status-pill">DEMO</span>
           <span id="obdStatus" class="status-pill">OBD OFF</span>
+          <span id="gpsHeaderStatus" class="status-pill">GPS STANDBY</span>
+          <span id="weatherHeaderStatus" class="status-pill">WEATHER READY</span>
+          <span id="batteryHeaderStatus" class="status-pill">BATTERY --</span>
           <span id="wakeStatusTop" class="status-pill">WAKE OFF</span>
         </div>
 
@@ -49,66 +52,66 @@
         <div class="gauge-grid">
 
           <div class="gauge hero-gauge glow">
-            <span>SPEED</span>
+            <span>⚡ SPEED</span>
             <strong id="speedValue">0</strong>
             <small>MPH</small>
           </div>
 
           <div class="gauge hero-gauge glow">
-            <span>RPM</span>
+            <span>⏱ RPM</span>
             <strong id="rpmValue">850</strong>
             <small>RPM</small>
           </div>
 
           <div class="gauge hero-gauge glow">
-            <span>BOOST</span>
+            <span>🌀 BOOST</span>
             <strong id="boostValue">0.0</strong>
             <small>PSI</small>
           </div>
 
           <div class="gauge hero-gauge glow">
-            <span>COOLANT</span>
+            <span>🌡 COOLANT</span>
             <strong id="coolantValue">176</strong>
             <small>°F</small>
           </div>
 
           <div class="gauge small-gauge">
-            <span>BATTERY</span>
+            <span>🔋 BATTERY</span>
             <strong id="batteryValue">-- V</strong>
           </div>
 
           <div class="gauge small-gauge">
-            <span>INTAKE</span>
+            <span>🌬 INTAKE</span>
             <strong id="intakeValue">-- °F</strong>
           </div>
 
           <div class="gauge small-gauge">
-            <span>WEATHER</span>
+            <span>☁ WEATHER</span>
             <strong id="weatherStatus">READY</strong>
           </div>
 
           <div class="gauge small-gauge">
-            <span>CODES</span>
+            <span>🧠 CODES</span>
             <strong id="codeStatus">READY</strong>
           </div>
 
           <div class="gauge small-gauge">
-            <span>TRIP TIME</span>
+            <span>⏳ TRIP TIME</span>
             <strong id="tripTime">00:00</strong>
           </div>
 
           <div class="gauge small-gauge">
-            <span>AVG SPEED</span>
+            <span>📊 AVG SPEED</span>
             <strong id="avgSpeed">0 MPH</strong>
           </div>
 
           <div class="gauge small-gauge">
-            <span>TOP SPEED</span>
+            <span>🏁 TOP SPEED</span>
             <strong id="topSpeed">0 MPH</strong>
           </div>
 
           <div class="gauge small-gauge">
-            <span>GPS</span>
+            <span>📡 GPS</span>
             <strong id="gpsStatus">STANDBY</strong>
           </div>
 
@@ -195,43 +198,88 @@
           <button onclick="activateShowMode()">SHOW MODE</button>
         </div>
 
+        <div class="copilot-grid">
+          <div class="copilot-card">
+            <span>ENGINE HEALTH</span>
+            <strong id="engineHealthStatus">STABLE</strong>
+            <small id="engineHealthNote">Coolant and RPM normal.</small>
+          </div>
+
+          <div class="copilot-card">
+            <span>TURBO STATUS</span>
+            <strong id="turboHealthStatus">READY</strong>
+            <small id="turboHealthNote">Boost monitor standing by.</small>
+          </div>
+
+          <div class="copilot-card">
+            <span>POWER STATUS</span>
+            <strong id="powerHealthStatus">UNKNOWN</strong>
+            <small id="powerHealthNote">Waiting for battery voltage.</small>
+          </div>
+
+          <div class="copilot-card">
+            <span>DRIVE STATUS</span>
+            <strong id="driveHealthStatus">READY</strong>
+            <small id="driveHealthNote">No active warnings.</small>
+          </div>
+        </div>
+
         <div class="copilot-box">
           <h3>Copilot Output</h3>
           <p id="copilotOutput">Standing by.</p>
         </div>
       </section>
 
-        <section id="navTab" class="tab">
-  <div class="nav-header-row">
-    <h2>NAVIGATION MODE</h2>
+      <section id="navTab" class="tab">
+        <div class="nav-header-row">
+          <h2>NAVIGATION MODE</h2>
 
-    <div class="nav-search">
-      <input id="navSearchInput" type="text" placeholder="Enter destination..." />
-      <button onclick="loadDestination()">LOAD</button>
-      <button onclick="openFullGoogleMaps()">OPEN MAPS</button>
-      <button onclick="goHomeNav()">HOME</button>
-    </div>
-  </div>
+          <div class="nav-search">
+            <input id="navSearchInput" type="text" placeholder="Enter destination..." />
+            <button onclick="loadDestination()">LOAD</button>
+            <button onclick="openFullGoogleMaps()">OPEN MAPS</button>
+            <button onclick="goHomeNav()">HOME</button>
+          </div>
+        </div>
 
-  <div class="nav-layout">
-    <div class="map-panel">
-      <iframe
-        id="mapFrame"
-        src="https://www.google.com/maps?q=current+location&output=embed"
-        allowfullscreen
-        loading="lazy">
-      </iframe>
-    </div>
+        <div class="nav-layout">
+          <div class="map-panel">
+            <iframe
+              id="mapFrame"
+              src="https://www.google.com/maps?q=current+location&output=embed"
+              allowfullscreen
+              loading="lazy">
+            </iframe>
+          </div>
 
-    <div class="nav-gauges">
-      <div class="mini-card"><span>SPEED</span><strong id="navSpeed">0 MPH</strong></div>
-      <div class="mini-card"><span>RPM</span><strong id="navRpm">850</strong></div>
-      <div class="mini-card"><span>BOOST</span><strong id="navBoost">0.0 PSI</strong></div>
-      <div class="mini-card"><span>INTAKE</span><strong id="navIntake">-- °F</strong></div>
-      <div class="mini-card"><span>WEATHER</span><strong id="navWeather">READY</strong></div>
-    </div>
-  </div>
-</section>
+          <div class="nav-gauges">
+            <div class="mini-card">
+              <span>SPEED</span>
+              <strong id="navSpeed">0 MPH</strong>
+            </div>
+
+            <div class="mini-card">
+              <span>RPM</span>
+              <strong id="navRpm">850</strong>
+            </div>
+
+            <div class="mini-card">
+              <span>BOOST</span>
+              <strong id="navBoost">0.0 PSI</strong>
+            </div>
+
+            <div class="mini-card">
+              <span>INTAKE</span>
+              <strong id="navIntake">-- °F</strong>
+            </div>
+
+            <div class="mini-card">
+              <span>WEATHER</span>
+              <strong id="navWeather">READY</strong>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section id="settingsTab" class="tab">
         <h2>VOICE SETTINGS</h2>
@@ -279,6 +327,7 @@
           <p id="alertStatus" class="note">Driving Alerts: Enabled</p>
           <p id="autoThemeStatus" class="note">Auto Theme: Disabled</p>
           <p id="wakeStatus" class="note">Wake Word: Off</p>
+          <p id="showModeStatus" class="note">Show Mode: Off</p>
         </div>
       </section>
 
