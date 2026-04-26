@@ -6,13 +6,14 @@
   <title>JETT TD Black Diesel</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+
+<body class="theme-legacy">
   <main class="app">
 
     <section id="bootScreen" class="boot-screen">
       <div class="boot-card">
         <h1>JETT TD</h1>
-        <p>BLACK DIESEL</p>
+        <p>BLACK DIESEL COMMAND</p>
         <span id="bootStatus">SYSTEM STANDBY</span>
 
         <div id="bootLog" class="boot-log">
@@ -24,43 +25,71 @@
     </section>
 
     <section id="dashboard" class="dashboard hidden">
+
       <header class="top-bar">
         <div>
           <h1>JETT TD</h1>
           <p id="pageTitle">BLACK DIESEL COMMAND</p>
         </div>
 
+        <div class="status-pill-group">
+          <span id="sourceStatus" class="status-pill">DEMO</span>
+          <span id="obdStatus" class="status-pill">OBD OFF</span>
+          <span id="wakeStatusTop" class="status-pill">WAKE OFF</span>
+        </div>
+
         <div class="top-actions">
           <button onclick="listenCommand()">TALK</button>
           <button onclick="speakCurrentStartup()">VOICE TEST</button>
-          <button onclick="showTab('settings')">SETTINGS</button>
+          <button onclick="goFullscreen()">FULLSCREEN</button>
         </div>
       </header>
 
       <section id="dashTab" class="tab active">
         <div class="gauge-grid">
-          <div class="gauge glow">
+
+          <div class="gauge hero-gauge glow">
             <span>SPEED</span>
             <strong id="speedValue">0</strong>
             <small>MPH</small>
           </div>
 
-          <div class="gauge glow">
+          <div class="gauge hero-gauge glow">
             <span>RPM</span>
             <strong id="rpmValue">850</strong>
             <small>RPM</small>
           </div>
 
-          <div class="gauge glow">
+          <div class="gauge hero-gauge glow">
             <span>BOOST</span>
             <strong id="boostValue">0.0</strong>
             <small>PSI</small>
           </div>
 
-          <div class="gauge glow">
+          <div class="gauge hero-gauge glow">
             <span>COOLANT</span>
             <strong id="coolantValue">176</strong>
             <small>°F</small>
+          </div>
+
+          <div class="gauge small-gauge">
+            <span>BATTERY</span>
+            <strong id="batteryValue">-- V</strong>
+          </div>
+
+          <div class="gauge small-gauge">
+            <span>INTAKE</span>
+            <strong id="intakeValue">-- °F</strong>
+          </div>
+
+          <div class="gauge small-gauge">
+            <span>WEATHER</span>
+            <strong id="weatherStatus">READY</strong>
+          </div>
+
+          <div class="gauge small-gauge">
+            <span>CODES</span>
+            <strong id="codeStatus">READY</strong>
           </div>
 
           <div class="gauge small-gauge">
@@ -69,18 +98,8 @@
           </div>
 
           <div class="gauge small-gauge">
-            <span>GPS SPEED</span>
-            <strong id="gpsStatus">STANDBY</strong>
-          </div>
-
-          <div class="gauge small-gauge">
             <span>AVG SPEED</span>
             <strong id="avgSpeed">0 MPH</strong>
-          </div>
-
-          <div class="gauge small-gauge">
-            <span>SOURCE</span>
-            <strong id="sourceStatus">DEMO</strong>
           </div>
 
           <div class="gauge small-gauge">
@@ -89,28 +108,21 @@
           </div>
 
           <div class="gauge small-gauge">
-            <span>BATTERY</span>
-            <strong id="batteryValue">13.8 V</strong>
+            <span>GPS</span>
+            <strong id="gpsStatus">STANDBY</strong>
           </div>
 
-          <div class="gauge small-gauge">
-            <span>WEATHER</span>
-            <strong id="weatherValue">READY</strong>
-          </div>
-
-          <div class="gauge small-gauge">
-            <span>SECURITY</span>
-            <strong id="securityStatus">OFF</strong>
-          </div>
         </div>
 
         <div class="quick-buttons">
+          <button onclick="connectOBD()">CONNECT OBD</button>
+          <button onclick="disconnectOBD()">DISCONNECT OBD</button>
+          <button onclick="scanCodes()">SCAN CODES</button>
+          <button onclick="startGpsSpeed()">START GPS</button>
+          <button onclick="weatherLayer()">WEATHER</button>
+          <button onclick="speakStatus()">FULL STATUS</button>
           <button onclick="speakModeLine('boost')">BOOST CHECK</button>
           <button onclick="speakModeLine('coolant')">TEMP CHECK</button>
-          <button onclick="speakModeLine('gps')">GPS STATUS</button>
-          <button onclick="speakStatus()">FULL STATUS</button>
-          <button onclick="listenCommand()">VOICE COMMAND</button>
-          <button onclick="startGpsSpeed()">START GPS</button>
           <button onclick="openYouTubeMusic()">YOUTUBE MUSIC</button>
           <button onclick="activateShowMode()">SHOW MODE</button>
         </div>
@@ -119,18 +131,9 @@
       <section id="performanceTab" class="tab">
         <h2>PERFORMANCE SYSTEMS</h2>
 
-        <div class="mode-grid">
-          <button onclick="setVoiceMode('race')">RACE MODE</button>
-          <button onclick="setVoiceMode('sport')">SPORT MODE</button>
-          <button onclick="setVoiceMode('mechanic')">MECHANIC MODE</button>
-          <button onclick="setVoiceMode('drill')">DRILL SERGEANT</button>
-        </div>
-
-        <h2>PERFORMANCE TIMER</h2>
-
         <div class="performance-grid">
           <div class="performance-card">
-            <span>0-60 TIMER</span>
+            <span>0–60 TIMER</span>
             <strong id="zeroSixtyTime">READY</strong>
             <small id="zeroSixtyStatus">Waiting</small>
           </div>
@@ -150,13 +153,19 @@
           <div class="performance-card">
             <span>DRIVE SCORE</span>
             <strong id="driveScore">100</strong>
-            <small>Demo score</small>
+            <small id="ecoScore">Eco 100</small>
           </div>
         </div>
 
         <div class="mode-grid">
-          <button onclick="startZeroSixty()">ARM 0-60</button>
-          <button onclick="resetZeroSixty()">RESET 0-60</button>
+          <button onclick="setVoiceMode('race')">RACE MODE</button>
+          <button onclick="setVoiceMode('sport')">SPORT MODE</button>
+          <button onclick="setVoiceMode('mechanic')">MECHANIC MODE</button>
+          <button onclick="setVoiceMode('drill')">DRILL SERGEANT</button>
+          <button onclick="startZeroSixty()">ARM 0–60</button>
+          <button onclick="resetZeroSixty()">RESET 0–60</button>
+          <button onclick="toggleSpoolMode()">TURBO SPOOL FX</button>
+          <button onclick="toggleAmbientGlow()">AMBIENT DRIVE GLOW</button>
           <button onclick="demoGauges()">SIMULATE DATA</button>
           <button onclick="resetTrip()">RESET TRIP</button>
         </div>
@@ -164,9 +173,14 @@
 
       <section id="mediaTab" class="tab">
         <h2>MEDIA CENTER</h2>
-        <button class="big-btn" onclick="openYouTubeMusic()">OPEN YOUTUBE MUSIC</button>
-        <button class="big-btn" onclick="systemChime()">TEST SYSTEM CHIME</button>
-        <p class="note">Music opens in YouTube Music. JETT voice alerts still play through Windows audio.</p>
+
+        <div class="media-panel">
+          <button class="big-btn" onclick="openYouTubeMusic()">OPEN YOUTUBE MUSIC</button>
+          <button class="big-btn" onclick="systemChime()">TEST SYSTEM CHIME</button>
+          <p class="note">
+            YouTube Music opens separately. JETT voice alerts still play through Windows audio.
+          </p>
+        </div>
       </section>
 
       <section id="copilotTab" class="tab">
@@ -174,7 +188,7 @@
 
         <div class="mode-grid">
           <button onclick="copilotReport()">COPILOT REPORT</button>
-          <button onclick="getWeather()">GET WEATHER</button>
+          <button onclick="weatherLayer()">GET WEATHER</button>
           <button onclick="activateSecurityMode()">SECURITY MODE ON</button>
           <button onclick="disableSecurityMode()">SECURITY MODE OFF</button>
           <button onclick="triggerSecurityScan()">SECURITY SCAN</button>
@@ -219,6 +233,7 @@
         </div>
 
         <h2>SYSTEM</h2>
+
         <div class="theme-grid">
           <button onclick="goFullscreen()">FULLSCREEN</button>
           <button onclick="toggleAlerts()">TOGGLE ALERTS</button>
@@ -228,9 +243,11 @@
           <button onclick="stopWakeWord()">HEY JETT OFF</button>
         </div>
 
-        <p id="alertStatus" class="note">Driving Alerts: Enabled</p>
-        <p id="autoThemeStatus" class="note">Auto Theme: Disabled</p>
-        <p id="wakeStatus" class="note">Wake Word: Off</p>
+        <div class="settings-status">
+          <p id="alertStatus" class="note">Driving Alerts: Enabled</p>
+          <p id="autoThemeStatus" class="note">Auto Theme: Disabled</p>
+          <p id="wakeStatus" class="note">Wake Word: Off</p>
+        </div>
       </section>
 
       <nav class="bottom-nav">
@@ -240,8 +257,8 @@
         <button onclick="showTab('copilot')">COPILOT</button>
         <button onclick="showTab('settings')">SETTINGS</button>
       </nav>
-    </section>
 
+    </section>
   </main>
 
   <script src="app.js"></script>
