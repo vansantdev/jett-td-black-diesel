@@ -9,7 +9,6 @@ const voiceModes = {
     gps: "GPS speed system standing by.",
     commandReady: "Command mode ready."
   },
-
   female: {
     label: "Female",
     rate: 1,
@@ -20,7 +19,6 @@ const voiceModes = {
     gps: "GPS speed tracking is ready.",
     commandReady: "I am listening."
   },
-
   robot: {
     label: "Robot",
     rate: 0.72,
@@ -31,7 +29,6 @@ const voiceModes = {
     gps: "Satellite speed tracking standing by.",
     commandReady: "Voice input active."
   },
-
   deepCommand: {
     label: "Deep Command",
     rate: 0.82,
@@ -42,7 +39,6 @@ const voiceModes = {
     gps: "GPS speed system armed.",
     commandReady: "Awaiting command."
   },
-
   sarcastic: {
     label: "Funny / Sarcastic",
     rate: 1,
@@ -53,7 +49,6 @@ const voiceModes = {
     gps: "GPS is ready. Because apparently the speedometer called off today.",
     commandReady: "Fine. I am listening."
   },
-
   mechanic: {
     label: "Mechanic Mode",
     rate: 0.95,
@@ -64,7 +59,6 @@ const voiceModes = {
     gps: "GPS speed active. Useful until that wheel speed issue is fixed.",
     commandReady: "Mechanic voice command ready."
   },
-
   butler: {
     label: "Butler Mode",
     rate: 0.85,
@@ -75,7 +69,6 @@ const voiceModes = {
     gps: "Navigation and speed tracking are ready, sir.",
     commandReady: "How may I assist, sir?"
   },
-
   drill: {
     label: "Diesel Drill Sergeant",
     rate: 1.05,
@@ -86,7 +79,6 @@ const voiceModes = {
     gps: "GPS ready. Eyes forward.",
     commandReady: "Speak up. Command mode active."
   },
-
   race: {
     label: "Race Mode",
     rate: 1.1,
@@ -97,7 +89,6 @@ const voiceModes = {
     gps: "GPS speed tracking active. Drive smart.",
     commandReady: "Race command ready."
   },
-
   sport: {
     label: "Sport Mode",
     rate: 1,
@@ -111,41 +102,12 @@ const voiceModes = {
 };
 
 const themeModes = {
-  legacy: {
-    label: "Color Shift Legacy",
-    className: "theme-legacy",
-    line: "Color shift legacy theme activated."
-  },
-
-  germanBlue: {
-    label: "OEM German Blue",
-    className: "theme-germanBlue",
-    line: "O E M German blue theme activated."
-  },
-
-  dieselAmber: {
-    label: "Diesel Amber",
-    className: "theme-dieselAmber",
-    line: "Diesel amber theme activated."
-  },
-
-  performanceRed: {
-    label: "Performance Red",
-    className: "theme-performanceRed",
-    line: "Performance red theme activated."
-  },
-
-  stealth: {
-    label: "Stealth Tactical",
-    className: "theme-stealth",
-    line: "Stealth tactical theme activated."
-  },
-
-  iceWhite: {
-    label: "Ice White",
-    className: "theme-iceWhite",
-    line: "Ice white theme activated."
-  }
+  legacy: { label: "Color Shift Legacy", className: "theme-legacy", line: "Color shift legacy theme activated." },
+  germanBlue: { label: "OEM German Blue", className: "theme-germanBlue", line: "O E M German blue theme activated." },
+  dieselAmber: { label: "Diesel Amber", className: "theme-dieselAmber", line: "Diesel amber theme activated." },
+  performanceRed: { label: "Performance Red", className: "theme-performanceRed", line: "Performance red theme activated." },
+  stealth: { label: "Stealth Tactical", className: "theme-stealth", line: "Stealth tactical theme activated." },
+  iceWhite: { label: "Ice White", className: "theme-iceWhite", line: "Ice white theme activated." }
 };
 
 let availableVoices = [];
@@ -153,14 +115,28 @@ let selectedSystemVoice = null;
 let currentVoiceMode = localStorage.getItem("jettVoiceMode") || "deepCommand";
 let currentThemeMode = localStorage.getItem("jettThemeMode") || "legacy";
 let alertsEnabled = localStorage.getItem("jettAlertsEnabled") !== "false";
+let autoThemeEnabled = localStorage.getItem("jettAutoTheme") === "true";
 
 let tripStart = Date.now();
 let speedSamples = [];
 let topSpeed = 0;
 let lastAlertTimes = {};
-
 let wakeListening = false;
 let wakeRecognition = null;
+let gpsWatchId = null;
+
+let performance = {
+  zeroToSixtyActive: false,
+  zeroToSixtyStart: null,
+  bestZeroToSixty: localStorage.getItem("jettBest060") || "--",
+  peakBoost: 0,
+  maxRpm: 0,
+  drivingScore: 100,
+  ecoScore: 100,
+  spoolMode: false,
+  ambientGlow: true,
+  securityMode: false
+};
 
 function getTimeGreeting() {
   const hour = new Date().getHours();
@@ -199,14 +175,11 @@ loadSystemVoices();
 function speak(text, overrideMode = null) {
   const modeKey = overrideMode || currentVoiceMode;
   const mode = voiceModes[modeKey] || voiceModes.deepCommand;
-
   const msg = new SpeechSynthesisUtterance(fillLine(text));
 
   loadSystemVoices();
 
-  if (selectedSystemVoice) {
-    msg.voice = selectedSystemVoice;
-  }
+  if (selectedSystemVoice) msg.voice = selectedSystemVoice;
 
   msg.rate = mode.rate;
   msg.pitch = mode.pitch;
@@ -214,6 +187,27 @@ function speak(text, overrideMode = null) {
 
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(msg);
+}
+
+function beep(type = "normal") {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.type = type === "warning" ? "sawtooth" : "sine";
+    osc.frequency.value = type === "warning" ? 220 : type === "spool" ? 520 : 760;
+    gain.gain.value = 0.04;
+
+    osc.start();
+    setTimeout(() => {
+      osc.stop();
+      ctx.close();
+    }, type === "spool" ? 250 : 120);
+  } catch (e) {}
 }
 
 function speakModeLine(type) {
@@ -235,10 +229,7 @@ function setVoiceMode(modeName) {
 
 function updateVoiceLabel() {
   const label = document.getElementById("currentVoiceLabel");
-
-  if (label) {
-    label.textContent = `Current Voice: ${voiceModes[currentVoiceMode].label}`;
-  }
+  if (label) label.textContent = `Current Voice: ${voiceModes[currentVoiceMode].label}`;
 }
 
 function testCurrentVoice() {
@@ -251,37 +242,57 @@ function speakCurrentStartup() {
   speak(mode.startup);
 }
 
-function setThemeMode(themeName) {
+function setThemeMode(themeName, silent = false) {
   if (!themeModes[themeName]) return;
 
   currentThemeMode = themeName;
   localStorage.setItem("jettThemeMode", themeName);
 
   applyTheme();
-  speak(themeModes[themeName].line);
+
+  if (!silent) speak(themeModes[themeName].line);
 }
 
 function applyTheme() {
   document.body.className = themeModes[currentThemeMode].className;
 
   const label = document.getElementById("currentThemeLabel");
-  if (label) {
-    label.textContent = `Current Theme: ${themeModes[currentThemeMode].label}`;
-  }
+  if (label) label.textContent = `Current Theme: ${themeModes[currentThemeMode].label}`;
+
+  if (autoThemeEnabled) document.body.classList.add("auto-theme-on");
 }
 
 function toggleAlerts() {
   alertsEnabled = !alertsEnabled;
   localStorage.setItem("jettAlertsEnabled", alertsEnabled ? "true" : "false");
-
   updateAlertLabel();
   speak(alertsEnabled ? "Driving alerts enabled." : "Driving alerts disabled.");
 }
 
 function updateAlertLabel() {
   const label = document.getElementById("alertStatus");
-  if (label) {
-    label.textContent = `Driving Alerts: ${alertsEnabled ? "Enabled" : "Disabled"}`;
+  if (label) label.textContent = `Driving Alerts: ${alertsEnabled ? "Enabled" : "Disabled"}`;
+}
+
+function toggleAutoTheme() {
+  autoThemeEnabled = !autoThemeEnabled;
+  localStorage.setItem("jettAutoTheme", autoThemeEnabled ? "true" : "false");
+
+  document.body.classList.toggle("auto-theme-on", autoThemeEnabled);
+  speak(autoThemeEnabled ? "Auto theme logic enabled." : "Auto theme logic disabled.");
+}
+
+function autoThemeLogic(speed, rpm, boost, coolant) {
+  if (!autoThemeEnabled) return;
+
+  if (coolant >= 215 || speed >= 80 || boost >= 18) {
+    setThemeMode("performanceRed", true);
+  } else if (new Date().getHours() >= 20 || new Date().getHours() < 6) {
+    setThemeMode("dieselAmber", true);
+  } else if (rpm < 1100 && speed < 5) {
+    setThemeMode("stealth", true);
+  } else {
+    setThemeMode("germanBlue", true);
   }
 }
 
@@ -294,6 +305,7 @@ function alertOnce(key, text, cooldownMs = 12000) {
   if (now - last < cooldownMs) return;
 
   lastAlertTimes[key] = now;
+  beep("warning");
   speak(text);
 }
 
@@ -301,17 +313,16 @@ function setValue(id, value) {
   const el = document.getElementById(id);
   if (!el) return;
   el.textContent = value;
+  el.classList.add("value-pop");
+  setTimeout(() => el.classList.remove("value-pop"), 220);
 }
 
 function markAlert(id, active) {
   const el = document.getElementById(id);
   if (!el) return;
 
-  if (active) {
-    el.classList.add("value-alert");
-  } else {
-    el.classList.remove("value-alert");
-  }
+  if (active) el.classList.add("value-alert");
+  else el.classList.remove("value-alert");
 }
 
 function checkDrivingAlerts(speed, rpm, boost, coolant) {
@@ -320,33 +331,41 @@ function checkDrivingAlerts(speed, rpm, boost, coolant) {
   markAlert("boostValue", boost >= 18);
   markAlert("coolantValue", coolant >= 215);
 
-  if (speed >= 80) {
-    alertOnce("speed", "Speed warning. You are over eighty miles per hour.");
-  }
+  if (speed >= 80) alertOnce("speed", "Speed warning. You are over eighty miles per hour.");
+  if (rpm >= 3600) alertOnce("rpm", "R P M warning. Shift or ease off.");
+  if (boost >= 18) alertOnce("boost", "Turbo pressure elevated.");
+  if (coolant >= 215) alertOnce("coolant", "Warning. Coolant temperature is high.");
 
-  if (rpm >= 3600) {
-    alertOnce("rpm", "R P M warning. Shift or ease off.");
-  }
-
-  if (boost >= 18) {
-    alertOnce("boost", "Turbo pressure elevated.");
-  }
-
-  if (coolant >= 215) {
-    alertOnce("coolant", "Warning. Coolant temperature is high.");
-  }
+  autoThemeLogic(speed, rpm, boost, coolant);
 }
 
 function updateSpeedStats(speed) {
   topSpeed = Math.max(topSpeed, speed);
   speedSamples.push(speed);
 
-  if (speedSamples.length > 300) {
-    speedSamples.shift();
-  }
+  if (speedSamples.length > 300) speedSamples.shift();
 
   const avg = Math.round(speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length);
+
   setValue("avgSpeed", `${avg} MPH`);
+  updatePerformanceScores(speed);
+}
+
+function updatePerformanceScores(speed) {
+  const rpm = Number(document.getElementById("rpmValue")?.textContent || 850);
+  const boost = Number(document.getElementById("boostValue")?.textContent || 0);
+
+  performance.peakBoost = Math.max(performance.peakBoost, boost);
+  performance.maxRpm = Math.max(performance.maxRpm, rpm);
+
+  let score = 100;
+  if (rpm > 3200) score -= 10;
+  if (boost > 17) score -= 10;
+  if (speed > 80) score -= 15;
+  if (speedSamples.length > 30 && topSpeed > 75) score -= 5;
+
+  performance.drivingScore = Math.max(0, score);
+  performance.ecoScore = Math.max(0, 100 - Math.round(boost * 2) - (rpm > 2800 ? 15 : 0));
 }
 
 function demoGauges() {
@@ -365,6 +384,93 @@ function demoGauges() {
 
   updateSpeedStats(speed);
   checkDrivingAlerts(speed, rpm, boost, coolant);
+  updateAmbientGlow(speed, rpm, boost);
+
+  if (performance.spoolMode && boost > 12) beep("spool");
+
+  checkZeroToSixty(speed);
+}
+
+function startGpsSpeed() {
+  if (!navigator.geolocation) {
+    speak("GPS is not available on this device.");
+    return;
+  }
+
+  if (gpsWatchId !== null) navigator.geolocation.clearWatch(gpsWatchId);
+
+  speak("GPS speed mode activated.");
+
+  gpsWatchId = navigator.geolocation.watchPosition(
+    (position) => {
+      const metersPerSecond = position.coords.speed;
+
+      if (metersPerSecond !== null) {
+        const mph = Math.round(metersPerSecond * 2.23694);
+        setValue("speedValue", mph);
+        setValue("gpsStatus", "ACTIVE");
+        setValue("sourceStatus", "GPS");
+        updateSpeedStats(mph);
+        checkDrivingAlerts(mph, Number(document.getElementById("rpmValue").textContent), Number(document.getElementById("boostValue").textContent), Number(document.getElementById("coolantValue").textContent));
+        checkZeroToSixty(mph);
+      }
+    },
+    () => {
+      setValue("gpsStatus", "UNAVAILABLE");
+      speak("GPS permission denied or unavailable.");
+    },
+    { enableHighAccuracy: true, maximumAge: 500, timeout: 10000 }
+  );
+}
+
+function updateAmbientGlow(speed, rpm, boost) {
+  if (!performance.ambientGlow) return;
+
+  const intensity = Math.min(1, (speed / 100 + rpm / 4500 + boost / 22) / 3);
+  document.documentElement.style.setProperty("--driveGlow", `${0.25 + intensity}`);
+}
+
+function toggleSpoolMode() {
+  performance.spoolMode = !performance.spoolMode;
+  document.body.classList.toggle("spool-mode", performance.spoolMode);
+  speak(performance.spoolMode ? "Turbo spool mode armed." : "Turbo spool mode disabled.");
+}
+
+function toggleAmbientGlow() {
+  performance.ambientGlow = !performance.ambientGlow;
+  document.body.classList.toggle("ambient-drive-glow", performance.ambientGlow);
+  speak(performance.ambientGlow ? "Ambient drive glow enabled." : "Ambient drive glow disabled.");
+}
+
+function startZeroToSixty() {
+  performance.zeroToSixtyActive = true;
+  performance.zeroToSixtyStart = null;
+  speak("Zero to sixty timer armed. Begin from a stop.");
+}
+
+function checkZeroToSixty(speed) {
+  if (!performance.zeroToSixtyActive) return;
+
+  if (speed <= 3 && performance.zeroToSixtyStart === null) {
+    performance.zeroToSixtyStart = Date.now();
+  }
+
+  if (speed >= 60 && performance.zeroToSixtyStart !== null) {
+    const time = ((Date.now() - performance.zeroToSixtyStart) / 1000).toFixed(2);
+    performance.zeroToSixtyActive = false;
+
+    if (performance.bestZeroToSixty === "--" || Number(time) < Number(performance.bestZeroToSixty)) {
+      performance.bestZeroToSixty = time;
+      localStorage.setItem("jettBest060", time);
+      speak(`New best zero to sixty. ${time} seconds.`);
+    } else {
+      speak(`Zero to sixty complete. ${time} seconds.`);
+    }
+  }
+}
+
+function speakPerformance() {
+  speak(`Peak boost ${performance.peakBoost.toFixed(1)} P S I. Max R P M ${performance.maxRpm}. Driving score ${performance.drivingScore}. Economy score ${performance.ecoScore}. Best zero to sixty ${performance.bestZeroToSixty} seconds.`);
 }
 
 function speakStatus() {
@@ -374,6 +480,33 @@ function speakStatus() {
   const coolant = document.getElementById("coolantValue").textContent;
 
   speak(`Current speed ${speed} miles per hour. Engine speed ${rpm} R P M. Boost pressure ${boost} P S I. Coolant temperature ${coolant} degrees.`);
+}
+
+function copilotReport() {
+  const coolant = Number(document.getElementById("coolantValue").textContent);
+  const boost = Number(document.getElementById("boostValue").textContent);
+  const rpm = Number(document.getElementById("rpmValue").textContent);
+
+  if (coolant >= 215) {
+    speak("Copilot report. Coolant temperature is elevated. Ease off and monitor temperature.");
+  } else if (boost >= 18) {
+    speak("Copilot report. Turbo pressure is high. Keep it controlled.");
+  } else if (rpm >= 3600) {
+    speak("Copilot report. R P M is high. Shift or back off.");
+  } else {
+    speak("Copilot report. Systems look stable. Coolant normal. Boost normal. No active warnings.");
+  }
+}
+
+function weatherLayer() {
+  const now = new Date();
+  speak(`Current time is ${now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}. Weather requires internet service integration later.`);
+}
+
+function toggleSecurityMode() {
+  performance.securityMode = !performance.securityMode;
+  document.body.classList.toggle("security-mode", performance.securityMode);
+  speak(performance.securityMode ? "Security scanner armed. Black diesel watch mode active." : "Security scanner disabled.");
 }
 
 function listenCommand() {
@@ -398,118 +531,48 @@ function listenCommand() {
   };
 
   recognition.onerror = (event) => {
-    console.log("Voice command error:", event.error);
-
-    if (event.error === "no-speech") {
-      speak("I did not hear a command.");
-    } else if (event.error === "audio-capture") {
-      speak("Microphone is not available.");
-    } else if (event.error === "not-allowed") {
-      speak("Microphone permission is blocked.");
-    } else {
-      speak("Voice command failed.");
-    }
+    if (event.error === "no-speech") speak("I did not hear a command.");
+    else if (event.error === "audio-capture") speak("Microphone is not available.");
+    else if (event.error === "not-allowed") speak("Microphone permission is blocked.");
+    else speak("Voice command failed.");
   };
 
   setTimeout(() => {
-    try {
-      recognition.start();
-    } catch (error) {
-      console.log("Command start error:", error);
-    }
+    try { recognition.start(); } catch (error) {}
   }, 900);
 }
 
 function handleVoiceCommand(command) {
-  if (command.includes("boost") || command.includes("turbo")) {
-    speakModeLine("boost");
-    return;
-  }
+  if (command.includes("boost") || command.includes("turbo")) return speakModeLine("boost");
+  if (command.includes("coolant") || command.includes("temp") || command.includes("temperature")) return speakModeLine("coolant");
+  if (command.includes("gps") || command.includes("speed")) return speakModeLine("gps");
+  if (command.includes("status") || command.includes("systems") || command.includes("how's the car")) return speakStatus();
+  if (command.includes("copilot") || command.includes("how is the car") || command.includes("how's it looking")) return copilotReport();
+  if (command.includes("performance") || command.includes("score")) return speakPerformance();
+  if (command.includes("weather") || command.includes("time")) return weatherLayer();
+  if (command.includes("music") || command.includes("youtube")) return openYouTubeMusic();
+  if (command.includes("spool")) return toggleSpoolMode();
+  if (command.includes("glow")) return toggleAmbientGlow();
+  if (command.includes("zero to sixty") || command.includes("0 to 60")) return startZeroToSixty();
+  if (command.includes("security")) return toggleSecurityMode();
+  if (command.includes("auto theme")) return toggleAutoTheme();
 
-  if (command.includes("coolant") || command.includes("temp") || command.includes("temperature")) {
-    speakModeLine("coolant");
-    return;
-  }
+  if (command.includes("race")) return setVoiceMode("race");
+  if (command.includes("sport")) return setVoiceMode("sport");
+  if (command.includes("mechanic")) return setVoiceMode("mechanic");
+  if (command.includes("sarcastic") || command.includes("funny")) return setVoiceMode("sarcastic");
+  if (command.includes("butler")) return setVoiceMode("butler");
+  if (command.includes("robot")) return setVoiceMode("robot");
+  if (command.includes("drill")) return setVoiceMode("drill");
 
-  if (command.includes("gps") || command.includes("speed")) {
-    speakModeLine("gps");
-    return;
-  }
+  if (command.includes("stealth")) return setThemeMode("stealth");
+  if (command.includes("red")) return setThemeMode("performanceRed");
+  if (command.includes("amber") || command.includes("orange") || command.includes("gold")) return setThemeMode("dieselAmber");
+  if (command.includes("blue")) return setThemeMode("germanBlue");
+  if (command.includes("ice") || command.includes("white")) return setThemeMode("iceWhite");
+  if (command.includes("legacy") || command.includes("color shift")) return setThemeMode("legacy");
 
-  if (command.includes("status") || command.includes("systems") || command.includes("how's the car")) {
-    speakStatus();
-    return;
-  }
-
-  if (command.includes("music") || command.includes("youtube")) {
-    openYouTubeMusic();
-    return;
-  }
-
-  if (command.includes("race")) {
-    setVoiceMode("race");
-    return;
-  }
-
-  if (command.includes("sport")) {
-    setVoiceMode("sport");
-    return;
-  }
-
-  if (command.includes("mechanic")) {
-    setVoiceMode("mechanic");
-    return;
-  }
-
-  if (command.includes("sarcastic") || command.includes("funny")) {
-    setVoiceMode("sarcastic");
-    return;
-  }
-
-  if (command.includes("butler")) {
-    setVoiceMode("butler");
-    return;
-  }
-
-  if (command.includes("robot")) {
-    setVoiceMode("robot");
-    return;
-  }
-
-  if (command.includes("drill")) {
-    setVoiceMode("drill");
-    return;
-  }
-
-  if (command.includes("stealth")) {
-    setThemeMode("stealth");
-    return;
-  }
-
-  if (command.includes("red")) {
-    setThemeMode("raceRed");
-    return;
-  }
-
-  if (command.includes("amber") || command.includes("orange") || command.includes("gold")) {
-    setThemeMode("dieselAmber");
-    return;
-  }
-
-  if (command.includes("blue")) {
-    setThemeMode("cyber");
-    return;
-  }
-
-  if (command.includes("oem")) {
-    setThemeMode("oemBlue");
-    return;
-  }
-
-  if (command.includes("fullscreen") || command.includes("full screen")) {
-    goFullscreen();
-    return;
-  }
+  if (command.includes("fullscreen") || command.includes("full screen")) return goFullscreen();
 
   speak(`Command not recognized. I heard ${command}.`);
 }
@@ -517,15 +580,8 @@ function handleVoiceCommand(command) {
 function startWakeWord() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  if (!SpeechRecognition) {
-    speak("Wake word is not supported in this browser.");
-    return;
-  }
-
-  if (wakeListening) {
-    speak("Hey Jett wake word is already active.");
-    return;
-  }
+  if (!SpeechRecognition) return speak("Wake word is not supported in this browser.");
+  if (wakeListening) return speak("Hey Jett wake word is already active.");
 
   wakeRecognition = new SpeechRecognition();
   wakeRecognition.lang = "en-US";
@@ -533,10 +589,7 @@ function startWakeWord() {
   wakeRecognition.interimResults = false;
 
   wakeRecognition.onresult = (event) => {
-    const transcript =
-      event.results[event.results.length - 1][0].transcript.toLowerCase();
-
-    console.log("Wake heard:", transcript);
+    const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
 
     if (
       transcript.includes("hey jett") ||
@@ -546,10 +599,7 @@ function startWakeWord() {
       transcript.includes("jet command")
     ) {
       wakeListening = false;
-
-      if (wakeRecognition) {
-        wakeRecognition.stop();
-      }
+      if (wakeRecognition) wakeRecognition.stop();
 
       speak("Awaiting command.");
 
@@ -559,19 +609,14 @@ function startWakeWord() {
     }
   };
 
-  wakeRecognition.onerror = (event) => {
-    console.log("Wake word error:", event.error);
+  wakeRecognition.onerror = () => {
     wakeListening = false;
   };
 
   wakeRecognition.onend = () => {
     if (wakeListening) {
       setTimeout(() => {
-        try {
-          wakeRecognition.start();
-        } catch (error) {
-          console.log("Wake restart error:", error);
-        }
+        try { wakeRecognition.start(); } catch (error) {}
       }, 1000);
     }
   };
@@ -582,45 +627,61 @@ function startWakeWord() {
     wakeRecognition.start();
     speak("Hey Jett wake word active.");
   } catch (error) {
-    console.log("Wake start error:", error);
     speak("Wake word could not start.");
   }
 }
 
 function stopWakeWord() {
   wakeListening = false;
-
-  if (wakeRecognition) {
-    wakeRecognition.stop();
-  }
-
+  if (wakeRecognition) wakeRecognition.stop();
   speak("Hey Jett wake word disabled.");
 }
 
+function cinematicStartup() {
+  const bootStatus = document.getElementById("bootStatus");
+  const steps = [
+    "INITIALIZING CORE",
+    "CAN BUS LINK STANDBY",
+    "VOICE MATRIX ONLINE",
+    "GPS SYSTEM READY",
+    "BOOST MONITOR ARMED",
+    "BLACK DIESEL ONLINE"
+  ];
+
+  let i = 0;
+  beep();
+
+  const interval = setInterval(() => {
+    if (bootStatus) bootStatus.textContent = steps[i];
+    beep();
+    i++;
+
+    if (i >= steps.length) {
+      clearInterval(interval);
+
+      setTimeout(() => {
+        document.getElementById("bootScreen").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+
+        updateVoiceLabel();
+        applyTheme();
+        updateAlertLabel();
+
+        speakCurrentStartup();
+      }, 450);
+    }
+  }, 430);
+}
+
 function startSystem() {
-  document.getElementById("bootStatus").textContent = "SYSTEM ONLINE";
-  document.getElementById("bootScreen").classList.add("hidden");
-  document.getElementById("dashboard").classList.remove("hidden");
-
-  updateVoiceLabel();
-  applyTheme();
-  updateAlertLabel();
-
-  setTimeout(() => {
-    speakCurrentStartup();
-  }, 500);
+  cinematicStartup();
 }
 
 function showTab(tabName) {
-  document.querySelectorAll(".tab").forEach(tab => {
-    tab.classList.remove("active");
-  });
+  document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
 
   const selected = document.getElementById(`${tabName}Tab`);
-
-  if (selected) {
-    selected.classList.add("active");
-  }
+  if (selected) selected.classList.add("active");
 
   const titles = {
     dash: "BLACK DIESEL COMMAND",
@@ -630,9 +691,7 @@ function showTab(tabName) {
   };
 
   const pageTitle = document.getElementById("pageTitle");
-  if (pageTitle) {
-    pageTitle.textContent = titles[tabName] || "BLACK DIESEL COMMAND";
-  }
+  if (pageTitle) pageTitle.textContent = titles[tabName] || "BLACK DIESEL COMMAND";
 }
 
 function openYouTubeMusic() {
@@ -641,9 +700,7 @@ function openYouTubeMusic() {
 }
 
 function goFullscreen() {
-  if (document.documentElement.requestFullscreen) {
-    document.documentElement.requestFullscreen();
-  }
+  if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
 }
 
 function updateTripTime() {
@@ -658,6 +715,8 @@ function resetTrip() {
   tripStart = Date.now();
   speedSamples = [];
   topSpeed = 0;
+  performance.peakBoost = 0;
+  performance.maxRpm = 0;
 
   setValue("tripTime", "00:00");
   setValue("avgSpeed", "0 MPH");
@@ -672,4 +731,5 @@ document.addEventListener("DOMContentLoaded", () => {
   applyTheme();
   updateAlertLabel();
   updateTripTime();
+  document.body.classList.toggle("ambient-drive-glow", performance.ambientGlow);
 });
