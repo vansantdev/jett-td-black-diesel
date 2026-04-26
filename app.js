@@ -1329,7 +1329,108 @@ function factoryReset() {
   }
 }
 
+function getVehicleProfile() {
+  const saved = localStorage.getItem("vehicleProfile");
+
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+function applyVehicleProfile() {
+  const profile = getVehicleProfile();
+
+  if (!profile) return;
+
+  const title = document.querySelector(".top-bar h1");
+  const bootTitle = document.querySelector(".boot-card h1");
+  const bootSubtitle = document.querySelector(".boot-card p");
+
+  if (title) title.textContent = profile.vehicleName || "JETT TD";
+  if (bootTitle) bootTitle.textContent = profile.vehicleName || "JETT TD";
+  if (bootSubtitle) bootSubtitle.textContent = profile.commandName || "BLACK DIESEL COMMAND";
+
+  setValue("pageTitle", profile.commandName || "BLACK DIESEL COMMAND");
+
+  if (profile.theme) {
+    currentThemeMode = profile.theme;
+    localStorage.setItem("jettThemeMode", profile.theme);
+    applyTheme();
+  }
+}
+
+function saveVehicleProfile() {
+  const profile = {
+    owner: document.getElementById("setupOwner").value || "Driver",
+    vehicleName: document.getElementById("setupVehicleName").value || "JETT TD",
+    make: document.getElementById("setupMake").value || "Volkswagen",
+    model: document.getElementById("setupModel").value || "Jetta",
+    year: document.getElementById("setupYear").value || "2006",
+    engine: document.getElementById("setupEngine").value || "1.9 TDI BRM",
+    fuel: document.getElementById("setupFuel").value || "Diesel",
+    theme: document.getElementById("setupTheme").value || "legacy",
+    commandName: document.getElementById("setupCommandName").value || "Black Diesel Command"
+  };
+
+  localStorage.setItem("vehicleProfile", JSON.stringify(profile));
+  localStorage.setItem("setupComplete", "true");
+
+  document.getElementById("setupScreen").classList.add("hidden");
+  document.getElementById("bootScreen").classList.remove("hidden");
+
+  applyVehicleProfile();
+  speak(`${profile.vehicleName} profile saved. ${profile.commandName} online.`);
+}
+
+function skipSetup() {
+  localStorage.setItem("setupComplete", "true");
+  document.getElementById("setupScreen").classList.add("hidden");
+  document.getElementById("bootScreen").classList.remove("hidden");
+}
+
+function runSetupWizard() {
+  const profile = getVehicleProfile();
+
+  document.getElementById("setupScreen").classList.remove("hidden");
+  document.getElementById("bootScreen").classList.add("hidden");
+  document.getElementById("dashboard").classList.add("hidden");
+
+  if (profile) {
+    document.getElementById("setupOwner").value = profile.owner || "";
+    document.getElementById("setupVehicleName").value = profile.vehicleName || "";
+    document.getElementById("setupMake").value = profile.make || "";
+    document.getElementById("setupModel").value = profile.model || "";
+    document.getElementById("setupYear").value = profile.year || "";
+    document.getElementById("setupEngine").value = profile.engine || "";
+    document.getElementById("setupFuel").value = profile.fuel || "Diesel";
+    document.getElementById("setupTheme").value = profile.theme || "legacy";
+    document.getElementById("setupCommandName").value = profile.commandName || "";
+  }
+
+  logCommand("Setup wizard opened.");
+}
+
+function exportVehicleProfile() {
+  const data = localStorage.getItem("vehicleProfile") || "No profile saved.";
+
+  navigator.clipboard.writeText(data);
+  logCommand("Vehicle profile copied to clipboard.");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  if (localStorage.getItem("setupComplete") !== "true") {
+    document.getElementById("setupScreen").classList.remove("hidden");
+    document.getElementById("bootScreen").classList.add("hidden");
+  } else {
+    applyVehicleProfile();
+  }
+
   updateVoiceLabel();
   applyTheme();
   updateSystemLabels();
@@ -1337,9 +1438,4 @@ document.addEventListener("DOMContentLoaded", () => {
   updateCopilotBlocks();
   updateTripTime();
   syncNavGauges();
-
-  if (showModeActive) {
-    currentThemeMode = "performanceRed";
-    applyTheme();
-  }
 });

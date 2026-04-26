@@ -15,6 +15,45 @@
 <body class="theme-legacy">
   <main class="app">
 
+    <section id="setupScreen" class="setup-screen hidden">
+  <div class="setup-card">
+    <h1>JETT TD SETUP</h1>
+    <p>Configure this command system for your vehicle.</p>
+
+    <div class="setup-grid">
+      <input id="setupOwner" placeholder="Owner name ex: Danker" />
+      <input id="setupVehicleName" placeholder="Vehicle name ex: JETT TD" />
+      <input id="setupMake" placeholder="Make ex: Volkswagen" />
+      <input id="setupModel" placeholder="Model ex: Jetta" />
+      <input id="setupYear" placeholder="Year ex: 2006" />
+      <input id="setupEngine" placeholder="Engine ex: 1.9 TDI BRM" />
+
+      <select id="setupFuel">
+        <option value="Diesel">Diesel</option>
+        <option value="Gas">Gas</option>
+        <option value="Hybrid">Hybrid</option>
+        <option value="EV">EV</option>
+      </select>
+
+      <select id="setupTheme">
+        <option value="legacy">Color Shift Legacy</option>
+        <option value="germanBlue">OEM German Blue</option>
+        <option value="dieselAmber">Diesel Amber</option>
+        <option value="performanceRed">Performance Red</option>
+        <option value="stealth">Stealth Tactical</option>
+        <option value="iceWhite">Ice White</option>
+      </select>
+
+      <input id="setupCommandName" placeholder="Command name ex: Black Diesel Command" />
+    </div>
+
+    <div class="setup-actions">
+      <button onclick="saveVehicleProfile()">SAVE PROFILE</button>
+      <button onclick="skipSetup()">SKIP FOR NOW</button>
+    </div>
+  </div>
+</section>
+
     <section id="bootScreen" class="boot-screen">
       <div class="boot-card">
         <h1>JETT TD</h1>
