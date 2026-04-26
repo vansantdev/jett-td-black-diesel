@@ -544,3 +544,14 @@ body.security-mode .app::before {
     font-size: 42px;
   }
 }
+
+html,
+body,
+.app,
+.dashboard {
+  overflow-x: hidden;
+}
+
+.tab {
+  overflow-x: hidden;
+}

@@ -692,12 +692,25 @@ function toggleAmbientGlow() {
   speak(performance.ambientGlow ? "Ambient drive glow enabled." : "Ambient drive glow disabled.");
 }
 
+let showModeActive = false;
+
 function activateShowMode() {
-  setThemeMode("performanceRed", true);
-  performance.ambientGlow = true;
-  performance.spoolMode = true;
-  applyTheme();
-  speak("Show mode activated. Performance visuals online.");
+  showModeActive = !showModeActive;
+
+  if (showModeActive) {
+    performance.spoolMode = false;
+    performance.ambientGlow = true;
+    setThemeMode("performanceRed", true);
+    document.body.classList.remove("spool-mode");
+    applyTheme();
+    speak("Show mode activated.");
+  } else {
+    performance.spoolMode = false;
+    document.body.classList.remove("spool-mode");
+    setThemeMode("legacy", true);
+    applyTheme();
+    speak("Show mode disabled.");
+  }
 }
 
 function speakPerformance() {
