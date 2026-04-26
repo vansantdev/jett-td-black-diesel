@@ -511,46 +511,102 @@ function demoGauges() {
   checkZeroToSixty(speed);
 }
 
+let lastGpsPosition = null;
+let lastGpsTime = null;
+
 function startGpsSpeed() {
   if (!navigator.geolocation) {
     speak("GPS is not available on this device.");
     return;
   }
 
-  if (gpsWatchId !== null) navigator.geolocation.clearWatch(gpsWatchId);
+  if (gpsWatchId !== null) {
+    navigator.geolocation.clearWatch(gpsWatchId);
+  }
 
   speak("GPS speed mode activated.");
+  setValue("gpsStatus", "SEARCHING");
+  setValue("gpsHeaderStatus", "GPS SEARCHING");
 
   gpsWatchId = navigator.geolocation.watchPosition(
     (position) => {
-      const metersPerSecond = position.coords.speed;
-      setValue("gpsStatus", "ACTIVE");
+      const now = Date.now();
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      const nativeSpeed = position.coords.speed;
 
-      if (metersPerSecond !== null) {
-        const mph = Math.round(metersPerSecond * 2.23694);
+      let mph = 0;
 
-        setValue("speedValue", mph);
-        setValue("sourceStatus", obdLive ? "OBD + GPS" : "GPS");
+      if (nativeSpeed !== null && nativeSpeed >= 0) {
+        mph = Math.round(nativeSpeed * 2.23694);
+      } else if (lastGpsPosition && lastGpsTime) {
+        const distanceMeters = getDistanceMeters(
+          lastGpsPosition.lat,
+          lastGpsPosition.lon,
+          lat,
+          lon
+        );
 
-        updateSpeedStats(mph);
+        const seconds = (now - lastGpsTime) / 1000;
 
-        const rpm = Number(getText("rpmValue", "0"));
-        const boost = Number(getText("boostValue", "0"));
-        const coolant = Number(getText("coolantValue", "0"));
-
-        checkDrivingAlerts(mph, rpm, boost, coolant);
-        updateAmbientGlow(mph, rpm, boost);
-        checkZeroToSixty(mph);
-        updateHeaderBadges();
+        if (seconds > 0) {
+          const metersPerSecond = distanceMeters / seconds;
+          mph = Math.round(metersPerSecond * 2.23694);
+        }
       }
+
+      lastGpsPosition = { lat, lon };
+      lastGpsTime = now;
+
+      if (mph < 2) mph = 0;
+
+      setValue("speedValue", mph);
+      setValue("gpsStatus", "ACTIVE");
+      setValue("gpsHeaderStatus", "GPS ACTIVE");
+      setValue("sourceStatus", obdLive ? "OBD + GPS" : "GPS");
+
+      updateSpeedStats(mph);
+
+      const rpm = Number(getText("rpmValue", "0"));
+      const boost = Number(getText("boostValue", "0"));
+      const coolant = Number(getText("coolantValue", "0"));
+
+      checkDrivingAlerts(mph, rpm, boost, coolant);
+      updateAmbientGlow(mph, rpm, boost);
+      checkZeroToSixty(mph);
+      updateHeaderBadges();
+      syncNavGauges();
     },
     () => {
-      setValue("gpsStatus", "UNAVAILABLE");
-      setValue("gpsHeaderStatus", "GPS OFF");
+      setValue("gpsStatus", "BLOCKED");
+      setValue("gpsHeaderStatus", "GPS BLOCKED");
       speak("GPS permission denied or unavailable.");
     },
-    { enableHighAccuracy: true, maximumAge: 500, timeout: 10000 }
+    {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 15000
+    }
   );
+}
+
+function getDistanceMeters(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const toRad = deg => deg * Math.PI / 180;
+
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+    Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
 }
 
 async function weatherLayer() {
