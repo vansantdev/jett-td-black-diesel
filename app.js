@@ -1423,6 +1423,10 @@ function exportVehicleProfile() {
   logCommand("Vehicle profile copied to clipboard.");
 }
 
+function updateFuelStatus(value = "--") {
+  setValue("fuelStatus", value);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   if (localStorage.getItem("setupComplete") !== "true") {
     document.getElementById("setupScreen").classList.remove("hidden");
