@@ -3,97 +3,106 @@ const voiceModes = {
     label: "Male",
     rate: 0.9,
     pitch: 0.85,
-    startup: "Good {time} Danker. Jett T D black diesel systems online.",
+    startup: "Good {time} {driver}. {vehicle} systems online.",
     boost: "Boost pressure standing by.",
     coolant: "Coolant temperature is currently normal.",
     gps: "GPS speed system standing by.",
     commandReady: "Command mode ready."
   },
+
   female: {
     label: "Female",
     rate: 1,
     pitch: 1.15,
-    startup: "Good {time} Danker. Jett T D black diesel is online and ready.",
+    startup: "Good {time} {driver}. {vehicle} is online and ready.",
     boost: "Boost pressure is ready.",
     coolant: "Coolant temperature looks good.",
     gps: "GPS speed tracking is ready.",
     commandReady: "I am listening."
   },
+
   robot: {
     label: "Robot",
     rate: 0.72,
     pitch: 0.55,
-    startup: "System online. Diesel command interface active. Good {time}.",
+    startup: "System online. {command} active. Good {time}, {driver}.",
     boost: "Turbo pressure monitor active.",
     coolant: "Thermal system within range.",
     gps: "Satellite speed tracking standing by.",
     commandReady: "Voice input active."
   },
+
   deepCommand: {
     label: "Deep Command",
     rate: 0.82,
     pitch: 0.65,
-    startup: "Good {time} Danker. Black diesel command system online. Awaiting orders.",
+    startup: "Good {time} {driver}. {command} online. Awaiting orders.",
     boost: "Boost pressure standing by. Turbo system ready.",
     coolant: "Coolant system stable.",
     gps: "GPS speed system armed.",
     commandReady: "Awaiting command."
   },
+
   sarcastic: {
     label: "Funny / Sarcastic",
     rate: 1,
     pitch: 0.95,
-    startup: "Well well well. Good {time} Danker. The T D is alive again.",
+    startup: "Well well well. Good {time} {driver}. The system is alive again.",
     boost: "Boost is standing by. Try not to pretend this is a race car.",
     coolant: "Coolant looks fine. For once, nothing is angry.",
     gps: "GPS is ready. Because apparently the speedometer called off today.",
     commandReady: "Fine. I am listening."
   },
+
   mechanic: {
     label: "Mechanic Mode",
     rate: 0.95,
     pitch: 0.8,
-    startup: "Good {time}. Engine systems online. Watching boost, coolant, voltage, and driver behavior.",
+    startup: "Good {time} {driver}. Engine systems online. Watching boost, coolant, voltage, and driver behavior.",
     boost: "Checking turbo pressure. Keep an eye on spool and requested boost.",
     coolant: "Coolant temperature is in operating range.",
-    gps: "GPS speed active. Useful until that wheel speed issue is fixed.",
+    gps: "GPS speed active. Useful until the speed source is confirmed.",
     commandReady: "Mechanic voice command ready."
   },
+
   butler: {
     label: "Butler Mode",
     rate: 0.85,
     pitch: 0.9,
-    startup: "Good {time}, sir. Your black diesel is ready.",
+    startup: "Good {time}, {driver}. Your vehicle command system is ready.",
     boost: "Turbo pressure is prepared, sir.",
     coolant: "Coolant temperature appears acceptable, sir.",
     gps: "Navigation and speed tracking are ready, sir.",
-    commandReady: "How may I assist, sir?"
+    commandReady: "How may I assist?"
   },
+
   drill: {
     label: "Diesel Drill Sergeant",
     rate: 1.05,
     pitch: 0.7,
-    startup: "Listen up, Danker. Good {time}. Diesel system online. Stay sharp.",
+    startup: "Listen up, {driver}. Good {time}. {command} online. Stay sharp.",
     boost: "Turbo ready. Do not abuse it.",
     coolant: "Coolant is stable. Keep moving.",
     gps: "GPS ready. Eyes forward.",
     commandReady: "Speak up. Command mode active."
   },
+
   race: {
     label: "Race Mode",
     rate: 1.1,
     pitch: 0.78,
-    startup: "Good {time}. Race mode armed. Boost pressure standing by. Keep it controlled.",
+    startup: "Good {time} {driver}. Race mode armed. Boost pressure standing by. Keep it controlled.",
     boost: "Boost system armed. Turbo pressure standing by.",
     coolant: "Coolant stable. Performance window acceptable.",
     gps: "GPS speed tracking active. Drive smart.",
     commandReady: "Race command ready."
   },
+
   sport: {
     label: "Sport Mode",
     rate: 1,
     pitch: 0.75,
-    startup: "Good {time}. Sport mode online. Throttle discipline recommended.",
+    startup: "Good {time} {driver}. Sport mode online. Throttle discipline recommended.",
     boost: "Boost ready. Smooth throttle recommended.",
     coolant: "Coolant temperature is stable.",
     gps: "GPS speed system online.",
@@ -102,12 +111,36 @@ const voiceModes = {
 };
 
 const themeModes = {
-  legacy: { label: "Color Shift Legacy", className: "theme-legacy", line: "Color shift legacy theme activated." },
-  germanBlue: { label: "OEM German Blue", className: "theme-germanBlue", line: "O E M German blue theme activated." },
-  dieselAmber: { label: "Diesel Amber", className: "theme-dieselAmber", line: "Diesel amber theme activated." },
-  performanceRed: { label: "Performance Red", className: "theme-performanceRed", line: "Performance red theme activated." },
-  stealth: { label: "Stealth Tactical", className: "theme-stealth", line: "Stealth tactical theme activated." },
-  iceWhite: { label: "Ice White", className: "theme-iceWhite", line: "Ice white theme activated." }
+  legacy: {
+    label: "Color Shift Legacy",
+    className: "theme-legacy",
+    line: "Color shift legacy theme activated."
+  },
+  germanBlue: {
+    label: "OEM German Blue",
+    className: "theme-germanBlue",
+    line: "O E M German blue theme activated."
+  },
+  dieselAmber: {
+    label: "Diesel Amber",
+    className: "theme-dieselAmber",
+    line: "Diesel amber theme activated."
+  },
+  performanceRed: {
+    label: "Performance Red",
+    className: "theme-performanceRed",
+    line: "Performance red theme activated."
+  },
+  stealth: {
+    label: "Stealth Tactical",
+    className: "theme-stealth",
+    line: "Stealth tactical theme activated."
+  },
+  iceWhite: {
+    label: "Ice White",
+    className: "theme-iceWhite",
+    line: "Ice white theme activated."
+  }
 };
 
 let availableVoices = [];
@@ -131,6 +164,9 @@ let obdTimer = null;
 let voiceVolume = 1;
 let voiceMuted = false;
 
+let lastGpsPosition = null;
+let lastGpsTime = null;
+
 let performance = {
   zeroToSixtyActive: false,
   zeroToSixtyStart: null,
@@ -146,15 +182,64 @@ let performance = {
 
 const homeDestination = "home";
 
+function getVehicleProfile() {
+  const saved = localStorage.getItem("vehicleProfile");
+
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+function getDefaultProfile() {
+  return {
+    owner: "Danker",
+    vehicleName: "JETT TD",
+    make: "Volkswagen",
+    model: "Jetta",
+    year: "2006",
+    engine: "1.9 TDI BRM",
+    fuel: "Diesel",
+    theme: "legacy",
+    commandName: "Black Diesel Command"
+  };
+}
+
+function getActiveProfile() {
+  return getVehicleProfile() || getDefaultProfile();
+}
+
+function getDriverName() {
+  return getActiveProfile().owner || "Driver";
+}
+
+function getVehicleName() {
+  return getActiveProfile().vehicleName || "Vehicle";
+}
+
+function getCommandName() {
+  return getActiveProfile().commandName || "Vehicle Command";
+}
+
 function getTimeGreeting() {
   const hour = new Date().getHours();
+
   if (hour < 12) return "morning";
   if (hour < 17) return "afternoon";
   return "evening";
 }
 
-function fillLine(text) {
-  return text.replaceAll("{time}", getTimeGreeting());
+function personalizeLine(text) {
+  return text
+    .replaceAll("{time}", getTimeGreeting())
+    .replaceAll("{driver}", getDriverName())
+    .replaceAll("{vehicle}", getVehicleName())
+    .replaceAll("{command}", getCommandName());
 }
 
 function loadSystemVoices() {
@@ -185,7 +270,7 @@ function speak(text, overrideMode = null) {
 
   const modeKey = overrideMode || currentVoiceMode;
   const mode = voiceModes[modeKey] || voiceModes.deepCommand;
-  const msg = new SpeechSynthesisUtterance(fillLine(text));
+  const msg = new SpeechSynthesisUtterance(personalizeLine(text));
 
   loadSystemVoices();
 
@@ -226,13 +311,28 @@ function systemChime() {
   speak("System chime test complete.");
 }
 
+function playStartupSound() {
+  systemChime();
+  speak("{vehicle} systems online.");
+  logCommand("Startup sound played.");
+}
+
+function playWarningTone() {
+  systemChime();
+  setTimeout(() => systemChime(), 220);
+  logCommand("Warning tone played.");
+}
+
 function setValue(id, value) {
   const el = document.getElementById(id);
   if (!el) return;
 
   el.textContent = value;
   el.classList.add("value-pop");
-  setTimeout(() => el.classList.remove("value-pop"), 220);
+
+  setTimeout(() => {
+    el.classList.remove("value-pop");
+  }, 220);
 }
 
 function getText(id, fallback = "") {
@@ -261,7 +361,7 @@ function updateVoiceLabel() {
 
 function testCurrentVoice() {
   const mode = voiceModes[currentVoiceMode];
-  speak(`${mode.label} selected. Jett T D Black Diesel command system is online.`);
+  speak(`${mode.label} selected. {vehicle} command system is online.`);
 }
 
 function speakCurrentStartup() {
@@ -293,6 +393,7 @@ function applyTheme() {
 function toggleAlerts() {
   alertsEnabled = !alertsEnabled;
   localStorage.setItem("jettAlertsEnabled", alertsEnabled ? "true" : "false");
+
   updateSystemLabels();
   speak(alertsEnabled ? "Driving alerts enabled." : "Driving alerts disabled.");
 }
@@ -300,6 +401,7 @@ function toggleAlerts() {
 function toggleAutoTheme() {
   autoThemeEnabled = !autoThemeEnabled;
   localStorage.setItem("jettAutoTheme", autoThemeEnabled ? "true" : "false");
+
   updateSystemLabels();
   applyTheme();
   speak(autoThemeEnabled ? "Auto theme logic enabled." : "Auto theme logic disabled.");
@@ -312,7 +414,6 @@ function updateSystemLabels() {
   setValue("wakeStatusTop", wakeListening ? "WAKE ON" : "WAKE OFF");
   setValue("showModeStatus", `Show Mode: ${showModeActive ? "On" : "Off"}`);
 }
-
 function alertOnce(key, text, cooldownMs = 12000) {
   if (!alertsEnabled) return;
 
@@ -367,7 +468,7 @@ function updateCopilotBlocks() {
     setValue("turboHealthNote", "Turbo pressure elevated.");
   } else if (boost > 0) {
     setValue("turboHealthStatus", "ACTIVE");
-    setValue("turboHealthNote", `Boost currently ${boost.toFixed ? boost.toFixed(1) : boost} PSI.`);
+    setValue("turboHealthNote", `Boost currently ${Number(boost).toFixed(1)} PSI.`);
   } else {
     setValue("turboHealthStatus", "READY");
     setValue("turboHealthNote", "Boost monitor standing by.");
@@ -388,6 +489,7 @@ function updateCopilotBlocks() {
   }
 
   const warnings = [];
+
   if (coolant >= 215) warnings.push("coolant");
   if (boost >= 18) warnings.push("boost");
   if (rpm >= 3600) warnings.push("RPM");
@@ -421,10 +523,21 @@ function checkDrivingAlerts(speed, rpm, boost, coolant) {
   markAlert("boostValue", boost >= 18);
   markAlert("coolantValue", coolant >= 215);
 
-  if (speed >= 80) alertOnce("speed", "Speed warning. You are over eighty miles per hour.");
-  if (rpm >= 3600) alertOnce("rpm", "R P M warning. Shift or ease off.");
-  if (boost >= 18) alertOnce("boost", "Turbo pressure elevated.");
-  if (coolant >= 215) alertOnce("coolant", "Warning. Coolant temperature is high.");
+  if (speed >= 80) {
+    alertOnce("speed", "Speed warning. You are over eighty miles per hour.");
+  }
+
+  if (rpm >= 3600) {
+    alertOnce("rpm", "R P M warning. Shift or ease off.");
+  }
+
+  if (boost >= 18) {
+    alertOnce("boost", "Turbo pressure elevated.");
+  }
+
+  if (coolant >= 215) {
+    alertOnce("coolant", "Warning. Coolant temperature is high.");
+  }
 
   autoThemeLogic(speed, rpm, boost, coolant);
   updateCopilotBlocks();
@@ -434,12 +547,19 @@ function checkBatteryAlert(voltage) {
   if (voltage === null || voltage === undefined || Number.isNaN(Number(voltage))) return;
 
   const lowBattery = Number(voltage) < 12.2;
+
   markAlert("batteryValue", lowBattery);
 
-  if (lowBattery) alertOnce("battery", "Battery voltage low.");
+  if (lowBattery) {
+    alertOnce("battery", "Battery voltage low.");
+  }
 
   updateCopilotBlocks();
   updateHeaderBadges();
+}
+
+function updateFuelStatus(value = "--") {
+  setValue("fuelStatus", value);
 }
 
 function updateSpeedStats(speed) {
@@ -448,7 +568,9 @@ function updateSpeedStats(speed) {
 
   if (speedSamples.length > 300) speedSamples.shift();
 
-  const avg = Math.round(speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length);
+  const avg = Math.round(
+    speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length
+  );
 
   setValue("avgSpeed", `${avg} MPH`);
   setValue("topSpeed", `${topSpeed} MPH`);
@@ -464,13 +586,17 @@ function updatePerformanceScores(speed) {
   performance.maxRpm = Math.max(performance.maxRpm, rpm);
 
   let score = 100;
+
   if (rpm > 3200) score -= 10;
   if (boost > 17) score -= 10;
   if (speed > 80) score -= 15;
   if (speedSamples.length > 30 && topSpeed > 75) score -= 5;
 
   performance.drivingScore = Math.max(0, score);
-  performance.ecoScore = Math.max(0, 100 - Math.round(boost * 2) - (rpm > 2800 ? 15 : 0));
+  performance.ecoScore = Math.max(
+    0,
+    100 - Math.round(boost * 2) - (rpm > 2800 ? 15 : 0)
+  );
 
   setValue("peakBoost", `${performance.peakBoost.toFixed(1)} PSI`);
   setValue("maxRpm", `${Math.round(performance.maxRpm)} RPM`);
@@ -504,6 +630,7 @@ function demoGauges() {
   setValue("gpsStatus", "DEMO");
   setValue("sourceStatus", "SIM");
 
+  updateFuelStatus(`${Math.floor(20 + Math.random() * 80)}%`);
   updateSpeedStats(speed);
   checkDrivingAlerts(speed, rpm, boost, coolant);
   checkBatteryAlert(voltage);
@@ -514,9 +641,6 @@ function demoGauges() {
 
   checkZeroToSixty(speed);
 }
-
-let lastGpsPosition = null;
-let lastGpsTime = null;
 
 function startGpsSpeed() {
   if (!navigator.geolocation) {
@@ -619,37 +743,48 @@ async function weatherLayer() {
     return;
   }
 
-  navigator.geolocation.getCurrentPosition(async (position) => {
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
 
-    try {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=fahrenheit`;
-      const response = await fetch(url);
-      const data = await response.json();
+      try {
+        const url =
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}` +
+          `&longitude=${lon}` +
+          `&current=temperature_2m,weather_code` +
+          `&temperature_unit=fahrenheit`;
 
-      const temp = Math.round(data.current.temperature_2m);
-      const code = data.current.weather_code;
+        const response = await fetch(url);
+        const data = await response.json();
 
-      let condition = "CLEAR";
-      if (code >= 1 && code <= 3) condition = "CLOUDY";
-      if (code >= 51 && code <= 67) condition = "RAIN";
-      if (code >= 71 && code <= 77) condition = "SNOW";
-      if (code >= 95) condition = "STORM";
+        const temp = Math.round(data.current.temperature_2m);
+        const code = data.current.weather_code;
 
-      setValue("weatherStatus", `${temp}°F ${condition}`);
-      setValue("weatherHeaderStatus", `${temp}°F ${condition}`);
-      setValue("navWeather", `${temp}°F ${condition}`);
+        let condition = "CLEAR";
 
-      speak(`Current outside temperature is ${temp} degrees with ${condition.toLowerCase()} conditions.`);
-    } catch (error) {
-      setValue("weatherStatus", "ERROR");
-      setValue("weatherHeaderStatus", "WEATHER ERROR");
-      speak("Weather system failed.");
+        if (code >= 1 && code <= 3) condition = "CLOUDY";
+        if (code >= 51 && code <= 67) condition = "RAIN";
+        if (code >= 71 && code <= 77) condition = "SNOW";
+        if (code >= 95) condition = "STORM";
+
+        setValue("weatherStatus", `${temp}°F ${condition}`);
+        setValue("weatherHeaderStatus", `${temp}°F ${condition}`);
+        setValue("navWeather", `${temp}°F ${condition}`);
+
+        speak(
+          `Current outside temperature is ${temp} degrees with ${condition.toLowerCase()} conditions.`
+        );
+      } catch (error) {
+        setValue("weatherStatus", "ERROR");
+        setValue("weatherHeaderStatus", "WEATHER ERROR");
+        speak("Weather system failed.");
+      }
+    },
+    () => {
+      speak("Location permission denied.");
     }
-  }, () => {
-    speak("Location permission denied.");
-  });
+  );
 }
 
 async function connectOBD() {
@@ -693,6 +828,7 @@ async function disconnectOBD() {
 
   setValue("sourceStatus", "DISCONNECTED");
   setValue("obdStatus", "OBD OFF");
+
   speak("O B D disconnected.");
 }
 
@@ -723,6 +859,9 @@ async function readOBDLive() {
     if (data.boost !== null) setValue("boostValue", Number(data.boost).toFixed(1));
     if (data.voltage !== null) setValue("batteryValue", `${Number(data.voltage).toFixed(1)} V`);
     if (data.intakeTemp !== null) setValue("intakeValue", `${Math.round(data.intakeTemp)} °F`);
+    if (data.fuelLevel !== null && data.fuelLevel !== undefined) {
+      updateFuelStatus(`${Math.round(data.fuelLevel)}%`);
+    }
 
     if (data.speed !== null && data.speed > 0) {
       setValue("speedValue", Math.round(data.speed));
@@ -774,12 +913,13 @@ async function scanCodes() {
     speak("Code scan failed.");
   }
 }
-
 function startZeroToSixty() {
   performance.zeroToSixtyActive = true;
   performance.zeroToSixtyStart = null;
+
   setValue("zeroSixtyTime", "ARMED");
   setValue("zeroSixtyStatus", "Start from stop");
+
   speak("Zero to sixty timer armed. Begin from a stop.");
 }
 
@@ -792,18 +932,23 @@ function checkZeroToSixty(speed) {
 
   if (speed <= 3 && performance.zeroToSixtyStart === null) {
     performance.zeroToSixtyStart = Date.now();
+
     setValue("zeroSixtyTime", "RUNNING");
     setValue("zeroSixtyStatus", "Timer active");
   }
 
   if (speed >= 60 && performance.zeroToSixtyStart !== null) {
     const time = ((Date.now() - performance.zeroToSixtyStart) / 1000).toFixed(2);
+
     performance.zeroToSixtyActive = false;
 
     setValue("zeroSixtyTime", `${time}s`);
     setValue("zeroSixtyStatus", "Complete");
 
-    if (performance.bestZeroToSixty === "--" || Number(time) < Number(performance.bestZeroToSixty)) {
+    if (
+      performance.bestZeroToSixty === "--" ||
+      Number(time) < Number(performance.bestZeroToSixty)
+    ) {
       performance.bestZeroToSixty = time;
       localStorage.setItem("jettBest060", time);
       speak(`New best zero to sixty. ${time} seconds.`);
@@ -816,21 +961,29 @@ function checkZeroToSixty(speed) {
 function resetZeroSixty() {
   performance.zeroToSixtyActive = false;
   performance.zeroToSixtyStart = null;
+
   setValue("zeroSixtyTime", "READY");
   setValue("zeroSixtyStatus", "Waiting");
+
   speak("Zero to sixty timer reset.");
 }
 
 function toggleSpoolMode() {
   performance.spoolMode = !performance.spoolMode;
   applyTheme();
+
   speak(performance.spoolMode ? "Turbo spool mode armed." : "Turbo spool mode disabled.");
 }
 
 function toggleAmbientGlow() {
   performance.ambientGlow = !performance.ambientGlow;
   applyTheme();
-  speak(performance.ambientGlow ? "Ambient drive glow enabled." : "Ambient drive glow disabled.");
+
+  speak(
+    performance.ambientGlow
+      ? "Ambient drive glow enabled."
+      : "Ambient drive glow disabled."
+  );
 }
 
 function activateShowMode() {
@@ -840,15 +993,19 @@ function activateShowMode() {
   if (showModeActive) {
     performance.spoolMode = false;
     performance.ambientGlow = true;
+
     setThemeMode("performanceRed", true);
     document.body.classList.remove("spool-mode");
     applyTheme();
+
     speak("Show mode activated.");
   } else {
     performance.spoolMode = false;
+
     document.body.classList.remove("spool-mode");
     setThemeMode("legacy", true);
     applyTheme();
+
     speak("Show mode disabled.");
   }
 
@@ -856,7 +1013,13 @@ function activateShowMode() {
 }
 
 function speakPerformance() {
-  speak(`Peak boost ${performance.peakBoost.toFixed(1)} P S I. Max R P M ${Math.round(performance.maxRpm)}. Driving score ${performance.drivingScore}. Economy score ${performance.ecoScore}. Best zero to sixty ${performance.bestZeroToSixty} seconds.`);
+  speak(
+    `Peak boost ${performance.peakBoost.toFixed(1)} P S I. ` +
+    `Max R P M ${Math.round(performance.maxRpm)}. ` +
+    `Driving score ${performance.drivingScore}. ` +
+    `Economy score ${performance.ecoScore}. ` +
+    `Best zero to sixty ${performance.bestZeroToSixty} seconds.`
+  );
 }
 
 function speakStatus() {
@@ -866,8 +1029,17 @@ function speakStatus() {
   const coolant = getText("coolantValue", "0");
   const battery = getText("batteryValue", "-- V");
   const weather = getText("weatherStatus", "READY");
+  const fuel = getText("fuelStatus", "--");
 
-  speak(`Current speed ${speed} miles per hour. Engine speed ${rpm} R P M. Boost pressure ${boost} P S I. Coolant temperature ${coolant} degrees. Battery ${battery}. Weather ${weather}.`);
+  speak(
+    `Current speed ${speed} miles per hour. ` +
+    `Engine speed ${rpm} R P M. ` +
+    `Boost pressure ${boost} P S I. ` +
+    `Coolant temperature ${coolant} degrees. ` +
+    `Battery ${battery}. ` +
+    `Fuel ${fuel}. ` +
+    `Weather ${weather}.`
+  );
 }
 
 function copilotReport() {
@@ -878,7 +1050,10 @@ function copilotReport() {
   const power = getText("powerHealthStatus", "unknown");
   const drive = getText("driveHealthStatus", "ready");
 
-  const message = `Copilot report. Engine ${engine}. Turbo ${turbo}. Power ${power}. Drive status ${drive}.`;
+  const message =
+    `Copilot report. Engine ${engine}. ` +
+    `Turbo ${turbo}. Power ${power}. ` +
+    `Drive status ${drive}.`;
 
   setValue("copilotOutput", message);
   speak(message);
@@ -888,7 +1063,8 @@ function activateSecurityMode() {
   if (!performance.securityMode) {
     performance.securityMode = true;
     applyTheme();
-    speak("Security scanner armed. Black diesel watch mode active.");
+
+    speak("Security scanner armed. Vehicle watch mode active.");
   } else {
     speak("Security mode already active.");
   }
@@ -898,6 +1074,7 @@ function disableSecurityMode() {
   if (performance.securityMode) {
     performance.securityMode = false;
     applyTheme();
+
     speak("Security scanner disabled.");
   } else {
     speak("Security mode already disabled.");
@@ -905,13 +1082,18 @@ function disableSecurityMode() {
 }
 
 function toggleSecurityMode() {
-  if (performance.securityMode) disableSecurityMode();
-  else activateSecurityMode();
+  if (performance.securityMode) {
+    disableSecurityMode();
+  } else {
+    activateSecurityMode();
+  }
 }
 
 function triggerSecurityScan() {
   beep("warning");
+
   const message = "Security scan complete. No motion threats detected.";
+
   setValue("copilotOutput", message);
   speak(message);
 }
@@ -925,9 +1107,11 @@ function listenCommand() {
   }
 
   const mode = voiceModes[currentVoiceMode] || voiceModes.deepCommand;
+
   speak(mode.commandReady || "I am listening.");
 
   const recognition = new SpeechRecognition();
+
   recognition.lang = "en-US";
   recognition.continuous = false;
   recognition.interimResults = false;
@@ -938,23 +1122,42 @@ function listenCommand() {
   };
 
   recognition.onerror = (event) => {
-    if (event.error === "no-speech") speak("I did not hear a command.");
-    else if (event.error === "audio-capture") speak("Microphone is not available.");
-    else if (event.error === "not-allowed") speak("Microphone permission is blocked.");
-    else speak("Voice command failed.");
+    if (event.error === "no-speech") {
+      speak("I did not hear a command.");
+    } else if (event.error === "audio-capture") {
+      speak("Microphone is not available.");
+    } else if (event.error === "not-allowed") {
+      speak("Microphone permission is blocked.");
+    } else {
+      speak("Voice command failed.");
+    }
   };
 
   setTimeout(() => {
-    try { recognition.start(); } catch (error) {}
+    try {
+      recognition.start();
+    } catch (error) {}
   }, 900);
 }
 
 function handleVoiceCommand(command) {
   command = command.toLowerCase().trim();
 
-  if (command.includes("connect obd") || command.includes("connect o b d")) return connectOBD();
-  if (command.includes("disconnect obd") || command.includes("disconnect o b d")) return disconnectOBD();
-  if (command.includes("scan codes") || command.includes("check codes") || command.includes("diagnostic")) return scanCodes();
+  if (command.includes("connect obd") || command.includes("connect o b d")) {
+    return connectOBD();
+  }
+
+  if (command.includes("disconnect obd") || command.includes("disconnect o b d")) {
+    return disconnectOBD();
+  }
+
+  if (
+    command.includes("scan codes") ||
+    command.includes("check codes") ||
+    command.includes("diagnostic")
+  ) {
+    return scanCodes();
+  }
 
   if (command.includes("navigate home")) return goHomeNav();
 
@@ -982,22 +1185,60 @@ function handleVoiceCommand(command) {
     return speak(`Battery voltage is ${voltage}.`);
   }
 
+  if (command.includes("fuel")) {
+    const fuel = getText("fuelStatus", "unknown");
+    return speak(`Fuel status is ${fuel}.`);
+  }
+
   if (command.includes("intake")) {
     const intake = getText("intakeValue", "unknown");
     return speak(`Intake temperature is ${intake}.`);
   }
 
-  if (command.includes("boost") || command.includes("turbo")) return speakModeLine("boost");
-  if (command.includes("coolant") || command.includes("temp") || command.includes("temperature")) return speakModeLine("coolant");
-  if (command.includes("gps") || command.includes("speed")) return speakModeLine("gps");
-  if (command.includes("status") || command.includes("systems") || command.includes("how's the car") || command.includes("how is the car")) return speakStatus();
-  if (command.includes("copilot") || command.includes("how's it looking")) return copilotReport();
-  if (command.includes("performance") || command.includes("score")) return speakPerformance();
-  if (command.includes("weather") || command.includes("outside")) return weatherLayer();
-  if (command.includes("music") || command.includes("youtube")) return openYouTubeMusic();
+  if (command.includes("boost") || command.includes("turbo")) {
+    return speakModeLine("boost");
+  }
+
+  if (
+    command.includes("coolant") ||
+    command.includes("temp") ||
+    command.includes("temperature")
+  ) {
+    return speakModeLine("coolant");
+  }
+
+  if (command.includes("gps") || command.includes("speed")) {
+    return speakModeLine("gps");
+  }
+
+  if (
+    command.includes("status") ||
+    command.includes("systems") ||
+    command.includes("how's the car") ||
+    command.includes("how is the car")
+  ) {
+    return speakStatus();
+  }
+
+  if (command.includes("copilot") || command.includes("how's it looking")) {
+    return copilotReport();
+  }
+
+  if (command.includes("performance") || command.includes("score")) {
+    return speakPerformance();
+  }
+
+  if (command.includes("weather") || command.includes("outside")) {
+    return weatherLayer();
+  }
+
   if (command.includes("spool")) return toggleSpoolMode();
   if (command.includes("glow")) return toggleAmbientGlow();
-  if (command.includes("zero to sixty") || command.includes("0 to 60")) return startZeroToSixty();
+
+  if (command.includes("zero to sixty") || command.includes("0 to 60")) {
+    return startZeroToSixty();
+  }
+
   if (command.includes("security")) return toggleSecurityMode();
   if (command.includes("auto theme")) return toggleAutoTheme();
   if (command.includes("show mode")) return activateShowMode();
@@ -1005,19 +1246,39 @@ function handleVoiceCommand(command) {
   if (command.includes("race")) return setVoiceMode("race");
   if (command.includes("sport")) return setVoiceMode("sport");
   if (command.includes("mechanic")) return setVoiceMode("mechanic");
-  if (command.includes("sarcastic") || command.includes("funny")) return setVoiceMode("sarcastic");
+
+  if (command.includes("sarcastic") || command.includes("funny")) {
+    return setVoiceMode("sarcastic");
+  }
+
   if (command.includes("butler")) return setVoiceMode("butler");
   if (command.includes("robot")) return setVoiceMode("robot");
   if (command.includes("drill")) return setVoiceMode("drill");
 
   if (command.includes("stealth")) return setThemeMode("stealth");
   if (command.includes("red")) return setThemeMode("performanceRed");
-  if (command.includes("amber") || command.includes("orange") || command.includes("gold")) return setThemeMode("dieselAmber");
-  if (command.includes("blue")) return setThemeMode("germanBlue");
-  if (command.includes("ice") || command.includes("white")) return setThemeMode("iceWhite");
-  if (command.includes("legacy") || command.includes("color shift")) return setThemeMode("legacy");
 
-  if (command.includes("fullscreen") || command.includes("full screen")) return goFullscreen();
+  if (
+    command.includes("amber") ||
+    command.includes("orange") ||
+    command.includes("gold")
+  ) {
+    return setThemeMode("dieselAmber");
+  }
+
+  if (command.includes("blue")) return setThemeMode("germanBlue");
+
+  if (command.includes("ice") || command.includes("white")) {
+    return setThemeMode("iceWhite");
+  }
+
+  if (command.includes("legacy") || command.includes("color shift")) {
+    return setThemeMode("legacy");
+  }
+
+  if (command.includes("fullscreen") || command.includes("full screen")) {
+    return goFullscreen();
+  }
 
   speak(`Command not recognized. I heard ${command}.`);
 }
@@ -1025,23 +1286,31 @@ function handleVoiceCommand(command) {
 function startWakeWord() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  if (!SpeechRecognition) return speak("Wake word is not supported in this browser.");
-  if (wakeListening) return speak("Hey Jett wake word is already active.");
+  if (!SpeechRecognition) {
+    speak("Wake word is not supported in this browser.");
+    return;
+  }
+
+  if (wakeListening) {
+    speak("Wake word is already active.");
+    return;
+  }
 
   wakeRecognition = new SpeechRecognition();
+
   wakeRecognition.lang = "en-US";
   wakeRecognition.continuous = false;
   wakeRecognition.interimResults = false;
 
   wakeRecognition.onresult = (event) => {
-    const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
+    const transcript =
+      event.results[event.results.length - 1][0].transcript.toLowerCase();
 
     if (
       transcript.includes("hey jett") ||
       transcript.includes("hey jet") ||
-      transcript.includes("black diesel") ||
-      transcript.includes("jett command") ||
-      transcript.includes("jet command")
+      transcript.includes("vehicle command") ||
+      transcript.includes("command system")
     ) {
       wakeListening = false;
       updateSystemLabels();
@@ -1062,9 +1331,12 @@ function startWakeWord() {
     if (event.error === "no-speech") {
       if (wakeListening) {
         setTimeout(() => {
-          try { wakeRecognition.start(); } catch (error) {}
+          try {
+            wakeRecognition.start();
+          } catch (error) {}
         }, 800);
       }
+
       return;
     }
 
@@ -1075,7 +1347,9 @@ function startWakeWord() {
   wakeRecognition.onend = () => {
     if (wakeListening) {
       setTimeout(() => {
-        try { wakeRecognition.start(); } catch (error) {}
+        try {
+          wakeRecognition.start();
+        } catch (error) {}
       }, 1000);
     }
   };
@@ -1085,7 +1359,7 @@ function startWakeWord() {
 
   try {
     wakeRecognition.start();
-    speak("Hey Jett wake word active.");
+    speak("Wake word active.");
   } catch (error) {
     wakeListening = false;
     updateSystemLabels();
@@ -1095,28 +1369,135 @@ function startWakeWord() {
 
 function stopWakeWord() {
   wakeListening = false;
+
   if (wakeRecognition) wakeRecognition.stop();
+
   updateSystemLabels();
-  speak("Hey Jett wake word disabled.");
+  speak("Wake word disabled.");
+}
+
+function applyVehicleProfile() {
+  const profile = getActiveProfile();
+
+  const appName = profile.vehicleName || "Vehicle";
+  const commandName = profile.commandName || "Vehicle Command";
+
+  document.querySelectorAll(".top-bar h1").forEach((el) => {
+    el.textContent = appName;
+  });
+
+  document.querySelectorAll(".boot-card h1").forEach((el) => {
+    el.textContent = appName;
+  });
+
+  document.querySelectorAll(".boot-card p").forEach((el) => {
+    el.textContent = commandName;
+  });
+
+  setValue("pageTitle", commandName);
+
+  document.title = `${appName} ${commandName}`;
+
+  if (profile.theme) {
+    currentThemeMode = profile.theme;
+    localStorage.setItem("jettThemeMode", profile.theme);
+    applyTheme();
+  }
+}
+
+function saveVehicleProfile() {
+  const profile = {
+    owner: document.getElementById("setupOwner").value || "Driver",
+    vehicleName: document.getElementById("setupVehicleName").value || "Vehicle",
+    make: document.getElementById("setupMake").value || "",
+    model: document.getElementById("setupModel").value || "",
+    year: document.getElementById("setupYear").value || "",
+    engine: document.getElementById("setupEngine").value || "",
+    fuel: document.getElementById("setupFuel").value || "",
+    theme: document.getElementById("setupTheme").value || "legacy",
+    commandName:
+      document.getElementById("setupCommandName").value || "Vehicle Command"
+  };
+
+  localStorage.setItem("vehicleProfile", JSON.stringify(profile));
+  localStorage.setItem("setupComplete", "true");
+
+  document.getElementById("setupScreen").classList.add("hidden");
+  document.getElementById("bootScreen").classList.remove("hidden");
+  document.getElementById("dashboard").classList.add("hidden");
+
+  applyVehicleProfile();
+  speak(`${profile.vehicleName} profile saved. ${profile.commandName} online.`);
+}
+
+function skipSetup() {
+  localStorage.setItem("setupComplete", "true");
+
+  document.getElementById("setupScreen").classList.add("hidden");
+  document.getElementById("bootScreen").classList.remove("hidden");
+  document.getElementById("dashboard").classList.add("hidden");
+
+  applyVehicleProfile();
+}
+
+function runSetupWizard() {
+  const profile = getActiveProfile();
+
+  document.getElementById("setupScreen").classList.remove("hidden");
+  document.getElementById("bootScreen").classList.add("hidden");
+  document.getElementById("dashboard").classList.add("hidden");
+
+  document.getElementById("setupOwner").value = profile.owner || "";
+  document.getElementById("setupVehicleName").value = profile.vehicleName || "";
+  document.getElementById("setupMake").value = profile.make || "";
+  document.getElementById("setupModel").value = profile.model || "";
+  document.getElementById("setupYear").value = profile.year || "";
+  document.getElementById("setupEngine").value = profile.engine || "";
+  document.getElementById("setupFuel").value = profile.fuel || "Diesel";
+  document.getElementById("setupTheme").value = profile.theme || "legacy";
+  document.getElementById("setupCommandName").value = profile.commandName || "";
+
+  logCommand("Setup wizard opened.");
+}
+
+function exportVehicleProfile() {
+  const data = localStorage.getItem("vehicleProfile") || "No profile saved.";
+
+  navigator.clipboard.writeText(data);
+  logCommand("Vehicle profile copied to clipboard.");
+}
+
+function factoryReset() {
+  if (confirm("Reset vehicle command settings?")) {
+    localStorage.clear();
+    logCommand("Factory reset complete.");
+    location.reload();
+  }
 }
 
 function cinematicStartup() {
+  applyVehicleProfile();
+
   const bootStatus = document.getElementById("bootStatus");
   const bootLog = document.getElementById("bootLog");
 
+  const profile = getActiveProfile();
+
   const steps = [
     "IGNITION SIGNAL DETECTED",
-    "INITIALIZING CORE",
+    `${profile.vehicleName || "VEHICLE"} PROFILE LOADED`,
+    `${profile.engine || "ENGINE"} SYSTEM READY`,
     "VOICE MATRIX ONLINE",
     "GPS SYSTEM READY",
     "OBD BRIDGE STANDBY",
     "BOOST MONITOR ARMED",
-    "WEATHER LAYER READY",
-    "BLACK DIESEL ONLINE"
+    `${profile.commandName || "COMMAND"} ONLINE`
   ];
 
   let i = 0;
+
   if (bootLog) bootLog.innerHTML = "";
+
   beep();
 
   const interval = setInterval(() => {
@@ -1137,6 +1518,7 @@ function cinematicStartup() {
 
         updateVoiceLabel();
         applyTheme();
+        applyVehicleProfile();
         updateSystemLabels();
         updateHeaderBadges();
         updateCopilotBlocks();
@@ -1153,37 +1535,41 @@ function startSystem() {
 }
 
 function showTab(tabName) {
-  document.querySelectorAll(".tab").forEach(tab => {
+  document.querySelectorAll(".tab").forEach((tab) => {
     tab.classList.remove("active");
     tab.classList.remove("fade-in");
   });
 
   const selected = document.getElementById(`${tabName}Tab`);
+
   if (selected) {
     selected.classList.add("active");
-    setTimeout(() => selected.classList.add("fade-in"), 10);
+
+    setTimeout(() => {
+      selected.classList.add("fade-in");
+    }, 10);
   }
 
+  const profile = getActiveProfile();
+
   const titles = {
-    dash: "BLACK DIESEL COMMAND",
+    dash: profile.commandName || "Vehicle Command",
     performance: "PERFORMANCE SYSTEMS",
-    media: "MEDIA CENTER",
+    command: "COMMAND CENTER",
     copilot: "AI COPILOT",
     nav: "NAVIGATION MODE",
     settings: "SYSTEM SETTINGS"
   };
 
-  setValue("pageTitle", titles[tabName] || "BLACK DIESEL COMMAND");
+  setValue("pageTitle", titles[tabName] || profile.commandName || "Vehicle Command");
+
   syncNavGauges();
 }
 
-function openYouTubeMusic() {
-  speak("Opening YouTube Music.");
-  window.open("https://music.youtube.com", "_blank");
-}
-
 function goFullscreen() {
-  if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen();
+  }
 }
 
 function updateTripTime() {
@@ -1206,7 +1592,9 @@ function loadDestination() {
   const map = document.getElementById("mapFrame");
 
   if (map) {
-    map.src = `https://www.google.com/maps?q=${encodeURIComponent(destination)}&output=embed`;
+    map.src =
+      `https://www.google.com/maps?q=${encodeURIComponent(destination)}` +
+      `&output=embed`;
   }
 
   speak(`Navigation map loaded for ${destination}.`);
@@ -1221,6 +1609,7 @@ function openFullGoogleMaps() {
     : "https://www.google.com/maps";
 
   window.open(url, "_blank");
+
   speak("Opening full Google Maps.");
 }
 
@@ -1232,7 +1621,9 @@ function goHomeNav() {
   const map = document.getElementById("mapFrame");
 
   if (map) {
-    map.src = `https://www.google.com/maps?q=${encodeURIComponent(homeDestination)}&output=embed`;
+    map.src =
+      `https://www.google.com/maps?q=${encodeURIComponent(homeDestination)}` +
+      `&output=embed`;
   }
 
   speak("Home navigation loaded.");
@@ -1267,26 +1658,10 @@ function resetTrip() {
   speak("Trip data reset.");
 }
 
-setInterval(updateTripTime, 1000);
-setInterval(syncNavGauges, 1000);
-setInterval(updateHeaderBadges, 1500);
-setInterval(updateCopilotBlocks, 2000);
-
 function logCommand(msg) {
   const el = document.getElementById("commandLog");
+
   if (el) el.textContent = msg;
-}
-
-function playStartupSound() {
-  systemChime();
-  speak("JETT TD systems online.");
-  logCommand("Startup sound played.");
-}
-
-function playWarningTone() {
-  systemChime();
-  setTimeout(() => systemChime(), 220);
-  logCommand("Warning tone played.");
 }
 
 function volumeUp() {
@@ -1310,128 +1685,21 @@ function unmuteVoice() {
   speak("Voice system restored.");
 }
 
-function runSetupWizard() {
-  logCommand("Setup wizard ready.");
-  alert("Setup wizard coming next: vehicle name, make, model, engine, theme, and command identity.");
-}
-
-function exportVehicleProfile() {
-  const data = localStorage.getItem("vehicleProfile") || "No profile saved.";
-  navigator.clipboard.writeText(data);
-  logCommand("Vehicle profile copied to clipboard.");
-}
-
-function factoryReset() {
-  if (confirm("Reset JETT TD settings?")) {
-    localStorage.clear();
-    logCommand("Factory reset complete.");
-    location.reload();
-  }
-}
-
-function getVehicleProfile() {
-  const saved = localStorage.getItem("vehicleProfile");
-
-  if (saved) {
-    try {
-      return JSON.parse(saved);
-    } catch {
-      return null;
-    }
-  }
-
-  return null;
-}
-
-function applyVehicleProfile() {
-  const profile = getVehicleProfile();
-
-  if (!profile) return;
-
-  const title = document.querySelector(".top-bar h1");
-  const bootTitle = document.querySelector(".boot-card h1");
-  const bootSubtitle = document.querySelector(".boot-card p");
-
-  if (title) title.textContent = profile.vehicleName || "JETT TD";
-  if (bootTitle) bootTitle.textContent = profile.vehicleName || "JETT TD";
-  if (bootSubtitle) bootSubtitle.textContent = profile.commandName || "BLACK DIESEL COMMAND";
-
-  setValue("pageTitle", profile.commandName || "BLACK DIESEL COMMAND");
-
-  if (profile.theme) {
-    currentThemeMode = profile.theme;
-    localStorage.setItem("jettThemeMode", profile.theme);
-    applyTheme();
-  }
-}
-
-function saveVehicleProfile() {
-  const profile = {
-    owner: document.getElementById("setupOwner").value || "Driver",
-    vehicleName: document.getElementById("setupVehicleName").value || "JETT TD",
-    make: document.getElementById("setupMake").value || "Volkswagen",
-    model: document.getElementById("setupModel").value || "Jetta",
-    year: document.getElementById("setupYear").value || "2006",
-    engine: document.getElementById("setupEngine").value || "1.9 TDI BRM",
-    fuel: document.getElementById("setupFuel").value || "Diesel",
-    theme: document.getElementById("setupTheme").value || "legacy",
-    commandName: document.getElementById("setupCommandName").value || "Black Diesel Command"
-  };
-
-  localStorage.setItem("vehicleProfile", JSON.stringify(profile));
-  localStorage.setItem("setupComplete", "true");
-
-  document.getElementById("setupScreen").classList.add("hidden");
-  document.getElementById("bootScreen").classList.remove("hidden");
-
-  applyVehicleProfile();
-  speak(`${profile.vehicleName} profile saved. ${profile.commandName} online.`);
-}
-
-function skipSetup() {
-  localStorage.setItem("setupComplete", "true");
-  document.getElementById("setupScreen").classList.add("hidden");
-  document.getElementById("bootScreen").classList.remove("hidden");
-}
-
-function runSetupWizard() {
-  const profile = getVehicleProfile();
-
-  document.getElementById("setupScreen").classList.remove("hidden");
-  document.getElementById("bootScreen").classList.add("hidden");
-  document.getElementById("dashboard").classList.add("hidden");
-
-  if (profile) {
-    document.getElementById("setupOwner").value = profile.owner || "";
-    document.getElementById("setupVehicleName").value = profile.vehicleName || "";
-    document.getElementById("setupMake").value = profile.make || "";
-    document.getElementById("setupModel").value = profile.model || "";
-    document.getElementById("setupYear").value = profile.year || "";
-    document.getElementById("setupEngine").value = profile.engine || "";
-    document.getElementById("setupFuel").value = profile.fuel || "Diesel";
-    document.getElementById("setupTheme").value = profile.theme || "legacy";
-    document.getElementById("setupCommandName").value = profile.commandName || "";
-  }
-
-  logCommand("Setup wizard opened.");
-}
-
-function exportVehicleProfile() {
-  const data = localStorage.getItem("vehicleProfile") || "No profile saved.";
-
-  navigator.clipboard.writeText(data);
-  logCommand("Vehicle profile copied to clipboard.");
-}
-
-function updateFuelStatus(value = "--") {
-  setValue("fuelStatus", value);
-}
+setInterval(updateTripTime, 1000);
+setInterval(syncNavGauges, 1000);
+setInterval(updateHeaderBadges, 1500);
+setInterval(updateCopilotBlocks, 2000);
 
 document.addEventListener("DOMContentLoaded", () => {
   if (localStorage.getItem("setupComplete") !== "true") {
     document.getElementById("setupScreen").classList.remove("hidden");
     document.getElementById("bootScreen").classList.add("hidden");
+    document.getElementById("dashboard").classList.add("hidden");
   } else {
+    document.getElementById("setupScreen").classList.add("hidden");
+    document.getElementById("bootScreen").classList.remove("hidden");
+    document.getElementById("dashboard").classList.add("hidden");
+
     applyVehicleProfile();
   }
 
@@ -1442,4 +1710,9 @@ document.addEventListener("DOMContentLoaded", () => {
   updateCopilotBlocks();
   updateTripTime();
   syncNavGauges();
+
+  if (showModeActive) {
+    currentThemeMode = "performanceRed";
+    applyTheme();
+  }
 });
