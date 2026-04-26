@@ -498,9 +498,42 @@ function copilotReport() {
   }
 }
 
-function weatherLayer() {
-  const now = new Date();
-  speak(`Current time is ${now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}. Weather requires internet service integration later.`);
+async function weatherLayer() {
+  if (!navigator.geolocation) {
+    speak("Location services unavailable.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(async (position) => {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=fahrenheit`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      const temp = Math.round(data.current.temperature_2m);
+      const code = data.current.weather_code;
+
+      let condition = "clear";
+
+      if (code <= 3) condition = "cloudy";
+      if (code >= 51) condition = "rain";
+      if (code >= 71) condition = "snow";
+      if (code >= 95) condition = "storm";
+
+      setValue("weatherStatus", `${temp}°F`);
+      speak(`Current outside temperature is ${temp} degrees with ${condition} conditions.`);
+
+    } catch (error) {
+      speak("Weather system failed.");
+    }
+
+  }, () => {
+    speak("Location permission denied.");
+  });
 }
 
 function toggleSecurityMode() {
