@@ -3,106 +3,163 @@ const voiceModes = {
     label: "Male",
     rate: 0.9,
     pitch: 0.85,
-    startup: "Good evening Danker. Jett T D black diesel systems online.",
+    startup: "Good {time} Danker. Jett T D black diesel systems online.",
     boost: "Boost pressure standing by.",
     coolant: "Coolant temperature is currently normal.",
-    gps: "GPS speed system standing by."
+    gps: "GPS speed system standing by.",
+    commandReady: "Command mode ready."
   },
 
   female: {
     label: "Female",
     rate: 1,
     pitch: 1.15,
-    startup: "Good evening Danker. Jett T D black diesel is online and ready.",
+    startup: "Good {time} Danker. Jett T D black diesel is online and ready.",
     boost: "Boost pressure is ready.",
     coolant: "Coolant temperature looks good.",
-    gps: "GPS speed tracking is ready."
+    gps: "GPS speed tracking is ready.",
+    commandReady: "I am listening."
   },
 
   robot: {
     label: "Robot",
     rate: 0.72,
     pitch: 0.55,
-    startup: "System online. Diesel command interface active.",
+    startup: "System online. Diesel command interface active. Good {time}.",
     boost: "Turbo pressure monitor active.",
     coolant: "Thermal system within range.",
-    gps: "Satellite speed tracking standing by."
+    gps: "Satellite speed tracking standing by.",
+    commandReady: "Voice input active."
   },
 
   deepCommand: {
     label: "Deep Command",
     rate: 0.82,
     pitch: 0.65,
-    startup: "Danker. Black diesel command system online. Awaiting orders.",
+    startup: "Good {time} Danker. Black diesel command system online. Awaiting orders.",
     boost: "Boost pressure standing by. Turbo system ready.",
     coolant: "Coolant system stable.",
-    gps: "GPS speed system armed."
+    gps: "GPS speed system armed.",
+    commandReady: "Awaiting command."
   },
 
   sarcastic: {
     label: "Funny / Sarcastic",
     rate: 1,
     pitch: 0.95,
-    startup: "Well well well. The diesel lives again. Welcome back, Danker.",
+    startup: "Well well well. Good {time} Danker. The diesel lives again.",
     boost: "Boost is standing by. Try not to pretend this is a race car.",
     coolant: "Coolant looks fine. For once, nothing is angry.",
-    gps: "GPS is ready. Because apparently the speedometer called off today."
+    gps: "GPS is ready. Because apparently the speedometer called off today.",
+    commandReady: "Fine. I am listening."
   },
 
   mechanic: {
     label: "Mechanic Mode",
     rate: 0.95,
     pitch: 0.8,
-    startup: "Engine systems online. Watching boost, coolant, voltage, and driver behavior.",
+    startup: "Good {time}. Engine systems online. Watching boost, coolant, voltage, and driver behavior.",
     boost: "Checking turbo pressure. Keep an eye on spool and requested boost.",
     coolant: "Coolant temperature is in operating range.",
-    gps: "GPS speed active. Useful until that wheel speed issue is fixed."
+    gps: "GPS speed active. Useful until that wheel speed issue is fixed.",
+    commandReady: "Mechanic voice command ready."
   },
 
   butler: {
     label: "Butler Mode",
     rate: 0.85,
     pitch: 0.9,
-    startup: "Good evening, sir. Your black diesel is ready.",
+    startup: "Good {time}, sir. Your black diesel is ready.",
     boost: "Turbo pressure is prepared, sir.",
     coolant: "Coolant temperature appears acceptable, sir.",
-    gps: "Navigation and speed tracking are ready, sir."
+    gps: "Navigation and speed tracking are ready, sir.",
+    commandReady: "How may I assist, sir?"
   },
 
   drill: {
     label: "Diesel Drill Sergeant",
     rate: 1.05,
     pitch: 0.7,
-    startup: "Listen up, Danker. Diesel system online. Stay sharp.",
+    startup: "Listen up, Danker. Good {time}. Diesel system online. Stay sharp.",
     boost: "Turbo ready. Do not abuse it.",
     coolant: "Coolant is stable. Keep moving.",
-    gps: "GPS ready. Eyes forward."
+    gps: "GPS ready. Eyes forward.",
+    commandReady: "Speak up. Command mode active."
   },
 
   race: {
     label: "Race Mode",
     rate: 1.1,
     pitch: 0.78,
-    startup: "Race mode armed. Boost pressure standing by. Keep it controlled.",
+    startup: "Good {time}. Race mode armed. Boost pressure standing by. Keep it controlled.",
     boost: "Boost system armed. Turbo pressure standing by.",
     coolant: "Coolant stable. Performance window acceptable.",
-    gps: "GPS speed tracking active. Drive smart."
+    gps: "GPS speed tracking active. Drive smart.",
+    commandReady: "Race command ready."
   },
 
   sport: {
     label: "Sport Mode",
     rate: 1,
     pitch: 0.75,
-    startup: "Sport mode online. Throttle discipline recommended.",
+    startup: "Good {time}. Sport mode online. Throttle discipline recommended.",
     boost: "Boost ready. Smooth throttle recommended.",
     coolant: "Coolant temperature is stable.",
-    gps: "GPS speed system online."
+    gps: "GPS speed system online.",
+    commandReady: "Sport command ready."
+  }
+};
+
+const themeModes = {
+  cyber: {
+    label: "Cyber Blue",
+    className: "",
+    line: "Cyber blue theme activated."
+  },
+  stealth: {
+    label: "Night Stealth",
+    className: "theme-stealth",
+    line: "Night stealth theme activated."
+  },
+  raceRed: {
+    label: "Race Red",
+    className: "theme-raceRed",
+    line: "Race red theme activated."
+  },
+  dieselAmber: {
+    label: "Diesel Amber",
+    className: "theme-dieselAmber",
+    line: "Diesel amber theme activated."
+  },
+  oemBlue: {
+    label: "OEM Blue",
+    className: "theme-oemBlue",
+    line: "O E M blue theme activated."
   }
 };
 
 let availableVoices = [];
 let selectedSystemVoice = null;
 let currentVoiceMode = localStorage.getItem("jettVoiceMode") || "deepCommand";
+let currentThemeMode = localStorage.getItem("jettThemeMode") || "cyber";
+let alertsEnabled = localStorage.getItem("jettAlertsEnabled") !== "false";
+
+let tripStart = Date.now();
+let speedSamples = [];
+let topSpeed = 0;
+let lastAlertTimes = {};
+
+function getTimeGreeting() {
+  const hour = new Date().getHours();
+
+  if (hour < 12) return "morning";
+  if (hour < 17) return "afternoon";
+  return "evening";
+}
+
+function fillLine(text) {
+  return text.replace("{time}", getTimeGreeting());
+}
 
 function loadSystemVoices() {
   availableVoices = window.speechSynthesis.getVoices();
@@ -131,7 +188,7 @@ function speak(text, overrideMode = null) {
   const modeKey = overrideMode || currentVoiceMode;
   const mode = voiceModes[modeKey] || voiceModes.deepCommand;
 
-  const msg = new SpeechSynthesisUtterance(text);
+  const msg = new SpeechSynthesisUtterance(fillLine(text));
 
   loadSystemVoices();
 
@@ -182,11 +239,245 @@ function speakCurrentStartup() {
   speak(mode.startup);
 }
 
+function setThemeMode(themeName) {
+  if (!themeModes[themeName]) return;
+
+  currentThemeMode = themeName;
+  localStorage.setItem("jettThemeMode", themeName);
+
+  applyTheme();
+  speak(themeModes[themeName].line);
+}
+
+function applyTheme() {
+  document.body.className = themeModes[currentThemeMode].className;
+
+  const label = document.getElementById("currentThemeLabel");
+  if (label) {
+    label.textContent = `Current Theme: ${themeModes[currentThemeMode].label}`;
+  }
+}
+
+function toggleAlerts() {
+  alertsEnabled = !alertsEnabled;
+  localStorage.setItem("jettAlertsEnabled", alertsEnabled ? "true" : "false");
+
+  updateAlertLabel();
+  speak(alertsEnabled ? "Driving alerts enabled." : "Driving alerts disabled.");
+}
+
+function updateAlertLabel() {
+  const label = document.getElementById("alertStatus");
+  if (label) {
+    label.textContent = `Driving Alerts: ${alertsEnabled ? "Enabled" : "Disabled"}`;
+  }
+}
+
+function alertOnce(key, text, cooldownMs = 12000) {
+  if (!alertsEnabled) return;
+
+  const now = Date.now();
+  const last = lastAlertTimes[key] || 0;
+
+  if (now - last < cooldownMs) return;
+
+  lastAlertTimes[key] = now;
+  speak(text);
+}
+
+function setValue(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  el.textContent = value;
+}
+
+function markAlert(id, active) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  if (active) {
+    el.classList.add("value-alert");
+  } else {
+    el.classList.remove("value-alert");
+  }
+}
+
+function checkDrivingAlerts(speed, rpm, boost, coolant) {
+  markAlert("speedValue", speed >= 80);
+  markAlert("rpmValue", rpm >= 3600);
+  markAlert("boostValue", boost >= 18);
+  markAlert("coolantValue", coolant >= 215);
+
+  if (speed >= 80) {
+    alertOnce("speed", "Speed warning. You are over eighty miles per hour.");
+  }
+
+  if (rpm >= 3600) {
+    alertOnce("rpm", "R P M warning. Shift or ease off.");
+  }
+
+  if (boost >= 18) {
+    alertOnce("boost", "Turbo pressure elevated.");
+  }
+
+  if (coolant >= 215) {
+    alertOnce("coolant", "Warning. Coolant temperature is high.");
+  }
+}
+
+function updateSpeedStats(speed) {
+  topSpeed = Math.max(topSpeed, speed);
+  speedSamples.push(speed);
+
+  if (speedSamples.length > 300) {
+    speedSamples.shift();
+  }
+
+  const avg = Math.round(speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length);
+
+  setValue("avgSpeed", `${avg} MPH`);
+}
+
+function demoGauges() {
+  const speed = Math.floor(Math.random() * 95);
+  const rpm = Math.floor(850 + Math.random() * 3400);
+  const boost = Number((Math.random() * 21).toFixed(1));
+  const coolant = Math.floor(170 + Math.random() * 55);
+
+  setValue("speedValue", speed);
+  setValue("rpmValue", rpm);
+  setValue("boostValue", boost.toFixed(1));
+  setValue("coolantValue", coolant);
+
+  setValue("gpsStatus", "DEMO");
+  setValue("sourceStatus", "SIM");
+
+  updateSpeedStats(speed);
+  checkDrivingAlerts(speed, rpm, boost, coolant);
+}
+
+function speakStatus() {
+  const speed = document.getElementById("speedValue").textContent;
+  const rpm = document.getElementById("rpmValue").textContent;
+  const boost = document.getElementById("boostValue").textContent;
+  const coolant = document.getElementById("coolantValue").textContent;
+
+  speak(`Current speed ${speed} miles per hour. Engine speed ${rpm} R P M. Boost pressure ${boost} P S I. Coolant temperature ${coolant} degrees.`);
+}
+
+function listenCommand() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    speak("Voice command is not supported in this browser.");
+    return;
+  }
+
+  const mode = voiceModes[currentVoiceMode] || voiceModes.deepCommand;
+  speak(mode.commandReady || "I am listening.");
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  recognition.onresult = (event) => {
+    const command = event.results[0][0].transcript.toLowerCase();
+    handleVoiceCommand(command);
+  };
+
+  recognition.onerror = () => {
+    speak("Voice command failed. Try again.");
+  };
+
+  setTimeout(() => {
+    recognition.start();
+  }, 600);
+}
+
+function handleVoiceCommand(command) {
+  if (command.includes("boost")) {
+    speakModeLine("boost");
+    return;
+  }
+
+  if (command.includes("coolant") || command.includes("temp") || command.includes("temperature")) {
+    speakModeLine("coolant");
+    return;
+  }
+
+  if (command.includes("gps") || command.includes("speed")) {
+    speakModeLine("gps");
+    return;
+  }
+
+  if (command.includes("status") || command.includes("systems")) {
+    speakStatus();
+    return;
+  }
+
+  if (command.includes("music") || command.includes("youtube")) {
+    openYouTubeMusic();
+    return;
+  }
+
+  if (command.includes("race")) {
+    setVoiceMode("race");
+    return;
+  }
+
+  if (command.includes("sport")) {
+    setVoiceMode("sport");
+    return;
+  }
+
+  if (command.includes("mechanic")) {
+    setVoiceMode("mechanic");
+    return;
+  }
+
+  if (command.includes("sarcastic") || command.includes("funny")) {
+    setVoiceMode("sarcastic");
+    return;
+  }
+
+  if (command.includes("stealth")) {
+    setThemeMode("stealth");
+    return;
+  }
+
+  if (command.includes("red")) {
+    setThemeMode("raceRed");
+    return;
+  }
+
+  if (command.includes("amber") || command.includes("orange") || command.includes("gold")) {
+    setThemeMode("dieselAmber");
+    return;
+  }
+
+  if (command.includes("blue")) {
+    setThemeMode("cyber");
+    return;
+  }
+
+  if (command.includes("fullscreen") || command.includes("full screen")) {
+    goFullscreen();
+    return;
+  }
+
+  speak(`Command not recognized. I heard ${command}.`);
+}
+
 function startSystem() {
+  document.getElementById("bootStatus").textContent = "SYSTEM ONLINE";
   document.getElementById("bootScreen").classList.add("hidden");
   document.getElementById("dashboard").classList.remove("hidden");
 
   updateVoiceLabel();
+  applyTheme();
+  updateAlertLabel();
 
   setTimeout(() => {
     speakCurrentStartup();
@@ -203,6 +494,18 @@ function showTab(tabName) {
   if (selected) {
     selected.classList.add("active");
   }
+
+  const titles = {
+    dash: "BLACK DIESEL COMMAND",
+    performance: "PERFORMANCE SYSTEMS",
+    media: "MEDIA CENTER",
+    settings: "SYSTEM SETTINGS"
+  };
+
+  const pageTitle = document.getElementById("pageTitle");
+  if (pageTitle) {
+    pageTitle.textContent = titles[tabName] || "BLACK DIESEL COMMAND";
+  }
 }
 
 function openYouTubeMusic() {
@@ -210,6 +513,36 @@ function openYouTubeMusic() {
   window.open("https://music.youtube.com", "_blank");
 }
 
+function goFullscreen() {
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen();
+  }
+}
+
+function updateTripTime() {
+  const seconds = Math.floor((Date.now() - tripStart) / 1000);
+  const mins = Math.floor(seconds / 60).toString().padStart(2, "0");
+  const secs = (seconds % 60).toString().padStart(2, "0");
+
+  setValue("tripTime", `${mins}:${secs}`);
+}
+
+function resetTrip() {
+  tripStart = Date.now();
+  speedSamples = [];
+  topSpeed = 0;
+
+  setValue("tripTime", "00:00");
+  setValue("avgSpeed", "0 MPH");
+
+  speak("Trip data reset.");
+}
+
+setInterval(updateTripTime, 1000);
+
 document.addEventListener("DOMContentLoaded", () => {
   updateVoiceLabel();
+  applyTheme();
+  updateAlertLabel();
+  updateTripTime();
 });

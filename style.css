@@ -2,20 +2,57 @@
   box-sizing: border-box;
 }
 
+:root {
+  --bg: #03050a;
+  --panel: rgba(5, 10, 20, 0.85);
+  --accent: #00eaff;
+  --accent2: #d56cff;
+  --text: #eaffff;
+  --danger: #ff3030;
+}
+
 body {
   margin: 0;
-  background: #03050a;
-  color: #eaffff;
+  background: var(--bg);
+  color: var(--text);
   font-family: Arial, sans-serif;
   overflow: hidden;
+}
+
+body.theme-stealth {
+  --bg: #020202;
+  --panel: rgba(8, 8, 8, 0.92);
+  --accent: #7cff7c;
+  --accent2: #9eff9e;
+}
+
+body.theme-raceRed {
+  --bg: #090000;
+  --panel: rgba(18, 0, 0, 0.9);
+  --accent: #ff3030;
+  --accent2: #ff9b3d;
+}
+
+body.theme-dieselAmber {
+  --bg: #0b0905;
+  --panel: rgba(20, 12, 4, 0.9);
+  --accent: #f7943d;
+  --accent2: #f7c057;
+}
+
+body.theme-oemBlue {
+  --bg: #020814;
+  --panel: rgba(4, 12, 25, 0.9);
+  --accent: #4aa3ff;
+  --accent2: #9ed0ff;
 }
 
 .app {
   width: 100vw;
   height: 100vh;
   background:
-    radial-gradient(circle at center, rgba(0, 234, 255, 0.18), transparent 40%),
-    linear-gradient(135deg, #03050a, #080014 70%, #02060a);
+    radial-gradient(circle at center, color-mix(in srgb, var(--accent) 18%, transparent), transparent 40%),
+    linear-gradient(135deg, var(--bg), #080014 70%, #02060a);
 }
 
 .hidden {
@@ -33,21 +70,21 @@ body {
   max-width: 90%;
   padding: 35px;
   text-align: center;
-  border: 1px solid #00eaff;
+  border: 1px solid var(--accent);
   border-radius: 22px;
-  background: rgba(5, 10, 20, 0.85);
-  box-shadow: 0 0 25px rgba(0, 234, 255, 0.7), 0 0 65px rgba(140, 0, 255, 0.45);
+  background: var(--panel);
+  box-shadow: 0 0 25px color-mix(in srgb, var(--accent) 70%, transparent), 0 0 65px color-mix(in srgb, var(--accent2) 45%, transparent);
 }
 
 .boot-card h1 {
   font-size: 52px;
   margin: 0;
   letter-spacing: 6px;
-  color: #00eaff;
+  color: var(--accent);
 }
 
 .boot-card p {
-  color: #d56cff;
+  color: var(--accent2);
   letter-spacing: 8px;
   font-weight: bold;
 }
@@ -59,19 +96,19 @@ body {
 }
 
 button {
-  border: 1px solid #00eaff;
+  border: 1px solid var(--accent);
   background: rgba(0, 20, 35, 0.9);
-  color: #00eaff;
+  color: var(--accent);
   border-radius: 12px;
   padding: 12px 16px;
   font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(0, 234, 255, 0.25);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 button:hover {
-  background: rgba(0, 234, 255, 0.15);
-  box-shadow: 0 0 20px rgba(0, 234, 255, 0.75);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 75%, transparent);
 }
 
 .dashboard {
@@ -85,22 +122,22 @@ button:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid rgba(0, 234, 255, 0.5);
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
   border-radius: 16px;
   padding: 12px 18px;
   margin-bottom: 15px;
-  background: rgba(5, 10, 20, 0.8);
+  background: var(--panel);
 }
 
 .top-bar h1 {
   margin: 0;
-  color: #00eaff;
+  color: var(--accent);
   letter-spacing: 3px;
 }
 
 .top-bar p {
   margin: 4px 0 0;
-  color: #d56cff;
+  color: var(--accent2);
   letter-spacing: 3px;
 }
 
@@ -127,16 +164,16 @@ button:hover {
 
 .gauge {
   min-height: 150px;
-  border: 1px solid rgba(0, 234, 255, 0.6);
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
   border-radius: 18px;
-  background: rgba(7, 12, 25, 0.88);
+  background: var(--panel);
   padding: 18px;
   text-align: center;
 }
 
 .gauge span {
   display: block;
-  color: #00eaff;
+  color: var(--accent);
   letter-spacing: 2px;
   font-weight: bold;
 }
@@ -149,7 +186,7 @@ button:hover {
 }
 
 .gauge small {
-  color: #d56cff;
+  color: var(--accent2);
   font-weight: bold;
 }
 
@@ -167,16 +204,19 @@ button:hover {
 
 @keyframes pulseGlow {
   from {
-    box-shadow: 0 0 10px rgba(0, 234, 255, 0.35);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 35%, transparent);
   }
   to {
-    box-shadow: 0 0 25px rgba(0, 234, 255, 0.85), 0 0 45px rgba(140, 0, 255, 0.45);
+    box-shadow:
+      0 0 25px color-mix(in srgb, var(--accent) 85%, transparent),
+      0 0 45px color-mix(in srgb, var(--accent2) 45%, transparent);
   }
 }
 
 .quick-buttons,
 .mode-grid,
-.voice-grid {
+.voice-grid,
+.theme-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
@@ -186,18 +226,19 @@ button:hover {
 #settingsTab,
 #mediaTab,
 #performanceTab {
-  border: 1px solid rgba(0, 234, 255, 0.5);
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
   border-radius: 18px;
-  background: rgba(5, 10, 20, 0.75);
+  background: var(--panel);
   padding: 20px;
 }
 
 h2 {
-  color: #00eaff;
+  color: var(--accent);
   letter-spacing: 3px;
 }
 
 #currentVoiceLabel,
+#currentThemeLabel,
 .note {
   color: #d9faff;
 }
@@ -213,4 +254,14 @@ h2 {
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   margin-top: 15px;
+}
+
+.value-alert {
+  color: var(--danger) !important;
+  animation: alertPulse 0.6s infinite alternate;
+}
+
+@keyframes alertPulse {
+  from { text-shadow: 0 0 8px var(--danger); }
+  to { text-shadow: 0 0 25px var(--danger); }
 }

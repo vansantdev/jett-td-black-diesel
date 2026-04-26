@@ -13,7 +13,7 @@
       <div class="boot-card">
         <h1>JETT TD</h1>
         <p>BLACK DIESEL</p>
-        <span>SYSTEM STANDBY</span>
+        <span id="bootStatus">SYSTEM STANDBY</span>
         <button onclick="startSystem()">START SYSTEM</button>
       </div>
     </section>
@@ -22,10 +22,11 @@
       <header class="top-bar">
         <div>
           <h1>JETT TD</h1>
-          <p>BLACK DIESEL COMMAND</p>
+          <p id="pageTitle">BLACK DIESEL COMMAND</p>
         </div>
 
         <div class="top-actions">
+          <button onclick="listenCommand()">TALK</button>
           <button onclick="speakCurrentStartup()">VOICE TEST</button>
           <button onclick="showTab('settings')">SETTINGS</button>
         </div>
@@ -59,22 +60,22 @@
 
           <div class="gauge small-gauge">
             <span>TRIP TIME</span>
-            <strong>00:00</strong>
+            <strong id="tripTime">00:00</strong>
           </div>
 
           <div class="gauge small-gauge">
             <span>GPS SPEED</span>
-            <strong>STANDBY</strong>
+            <strong id="gpsStatus">STANDBY</strong>
           </div>
 
           <div class="gauge small-gauge">
             <span>AVG SPEED</span>
-            <strong>0 MPH</strong>
+            <strong id="avgSpeed">0 MPH</strong>
           </div>
 
           <div class="gauge small-gauge">
             <span>SOURCE</span>
-            <strong>DEMO</strong>
+            <strong id="sourceStatus">DEMO</strong>
           </div>
         </div>
 
@@ -82,6 +83,8 @@
           <button onclick="speakModeLine('boost')">BOOST CHECK</button>
           <button onclick="speakModeLine('coolant')">TEMP CHECK</button>
           <button onclick="speakModeLine('gps')">GPS STATUS</button>
+          <button onclick="speakStatus()">FULL STATUS</button>
+          <button onclick="listenCommand()">VOICE COMMAND</button>
           <button onclick="openYouTubeMusic()">YOUTUBE MUSIC</button>
         </div>
       </section>
@@ -94,12 +97,18 @@
           <button onclick="setVoiceMode('mechanic')">MECHANIC MODE</button>
           <button onclick="setVoiceMode('drill')">DRILL SERGEANT</button>
         </div>
+
+        <h2>DEMO GAUGES</h2>
+        <div class="mode-grid">
+          <button onclick="demoGauges()">SIMULATE DATA</button>
+          <button onclick="resetTrip()">RESET TRIP</button>
+        </div>
       </section>
 
       <section id="mediaTab" class="tab">
         <h2>MEDIA</h2>
         <button class="big-btn" onclick="openYouTubeMusic()">OPEN YOUTUBE MUSIC</button>
-        <p class="note">YouTube Music may open in a new window/tab. Voice alerts will still play through Windows audio.</p>
+        <p class="note">Music opens in YouTube Music. JETT voice alerts still play through Windows audio.</p>
       </section>
 
       <section id="settingsTab" class="tab">
@@ -120,6 +129,26 @@
         </div>
 
         <button class="big-btn" onclick="testCurrentVoice()">TEST CURRENT VOICE</button>
+
+        <h2>THEME MODES</h2>
+        <p id="currentThemeLabel">Current Theme: Cyber Blue</p>
+
+        <div class="theme-grid">
+          <button onclick="setThemeMode('cyber')">Cyber Blue</button>
+          <button onclick="setThemeMode('stealth')">Night Stealth</button>
+          <button onclick="setThemeMode('raceRed')">Race Red</button>
+          <button onclick="setThemeMode('dieselAmber')">Diesel Amber</button>
+          <button onclick="setThemeMode('oemBlue')">OEM Blue</button>
+        </div>
+
+        <h2>SYSTEM</h2>
+        <div class="theme-grid">
+          <button onclick="goFullscreen()">FULLSCREEN</button>
+          <button onclick="toggleAlerts()">TOGGLE ALERTS</button>
+          <button onclick="listenCommand()">TEST VOICE COMMAND</button>
+        </div>
+
+        <p id="alertStatus" class="note">Driving Alerts: Enabled</p>
       </section>
 
       <nav class="bottom-nav">
