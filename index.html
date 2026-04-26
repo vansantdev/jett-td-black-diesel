@@ -201,6 +201,29 @@
         </div>
       </section>
 
+        <section id="navTab" class="tab">
+  <h2>NAVIGATION MODE</h2>
+
+  <div class="nav-layout">
+    <div class="map-panel">
+      <iframe
+        id="mapFrame"
+        src="https://www.google.com/maps?q=current+location&output=embed"
+        allowfullscreen
+        loading="lazy">
+      </iframe>
+    </div>
+
+    <div class="nav-gauges">
+      <div class="mini-card"><span>SPEED</span><strong id="navSpeed">0 MPH</strong></div>
+      <div class="mini-card"><span>RPM</span><strong id="navRpm">850</strong></div>
+      <div class="mini-card"><span>BOOST</span><strong id="navBoost">0.0 PSI</strong></div>
+      <div class="mini-card"><span>INTAKE</span><strong id="navIntake">-- °F</strong></div>
+      <div class="mini-card"><span>WEATHER</span><strong id="navWeather">READY</strong></div>
+    </div>
+  </div>
+</section>
+
       <section id="settingsTab" class="tab">
         <h2>VOICE SETTINGS</h2>
         <p id="currentVoiceLabel">Current Voice: Deep Command</p>
@@ -247,6 +270,7 @@
           <p id="alertStatus" class="note">Driving Alerts: Enabled</p>
           <p id="autoThemeStatus" class="note">Auto Theme: Disabled</p>
           <p id="wakeStatus" class="note">Wake Word: Off</p>
+          <button onclick="showTab('nav')">NAV</button>
         </div>
       </section>
 

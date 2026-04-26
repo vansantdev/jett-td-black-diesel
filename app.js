@@ -1024,6 +1024,16 @@ function updateTripTime() {
   setValue("tripTime", `${mins}:${secs}`);
 }
 
+function syncNavGauges() {
+  setValue("navSpeed", `${document.getElementById("speedValue").textContent} MPH`);
+  setValue("navRpm", document.getElementById("rpmValue").textContent);
+  setValue("navBoost", `${document.getElementById("boostValue").textContent} PSI`);
+  setValue("navIntake", document.getElementById("intakeValue").textContent);
+  setValue("navWeather", document.getElementById("weatherStatus").textContent);
+}
+
+setInterval(syncNavGauges, 1000);
+
 function resetTrip() {
   tripStart = Date.now();
   speedSamples = [];
