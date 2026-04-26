@@ -19,32 +19,46 @@ body {
   overflow: hidden;
 }
 
-body.theme-stealth {
-  --bg: #020202;
-  --panel: rgba(8, 8, 8, 0.92);
-  --accent: #7cff7c;
-  --accent2: #9eff9e;
+body.theme-legacy {
+  --bg: #03050a;
+  --panel: rgba(5,10,20,.88);
+  --accent: #00eaff;
+  --accent2: #d56cff;
 }
 
-body.theme-raceRed {
-  --bg: #090000;
-  --panel: rgba(18, 0, 0, 0.9);
-  --accent: #ff3030;
-  --accent2: #ff9b3d;
+body.theme-germanBlue {
+  --bg: #050b16;
+  --panel: rgba(8,18,35,.92);
+  --accent: #4ea3ff;
+  --accent2: #9fd1ff;
 }
 
 body.theme-dieselAmber {
   --bg: #0b0905;
-  --panel: rgba(20, 12, 4, 0.9);
+  --panel: rgba(18,12,5,.92);
   --accent: #f7943d;
   --accent2: #f7c057;
 }
 
-body.theme-oemBlue {
-  --bg: #020814;
-  --panel: rgba(4, 12, 25, 0.9);
-  --accent: #4aa3ff;
-  --accent2: #9ed0ff;
+body.theme-performanceRed {
+  --bg: #090202;
+  --panel: rgba(20,4,4,.92);
+  --accent: #ff4040;
+  --accent2: #ff9d66;
+}
+
+body.theme-stealth {
+  --bg: #020302;
+  --panel: rgba(8,10,8,.92);
+  --accent: #7dff9a;
+  --accent2: #b6ffd0;
+}
+
+body.theme-iceWhite {
+  --bg: #080808;
+  --panel: rgba(18,18,18,.94);
+  --accent: #ffffff;
+  --accent2: #d9d9d9;
 }
 
 .app {

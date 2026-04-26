@@ -47,7 +47,7 @@ const voiceModes = {
     label: "Funny / Sarcastic",
     rate: 1,
     pitch: 0.95,
-    startup: "Well well well. Good {time} Danker. The diesel lives again.",
+    startup: "Well well well. Good {time} Danker. The T D is alive again.",
     boost: "Boost is standing by. Try not to pretend this is a race car.",
     coolant: "Coolant looks fine. For once, nothing is angry.",
     gps: "GPS is ready. Because apparently the speedometer called off today.",
@@ -111,37 +111,47 @@ const voiceModes = {
 };
 
 const themeModes = {
-  cyber: {
-    label: "Cyber Blue",
-    className: "",
-    line: "Cyber blue theme activated."
+  legacy: {
+    label: "Color Shift Legacy",
+    className: "theme-legacy",
+    line: "Color shift legacy theme activated."
   },
-  stealth: {
-    label: "Night Stealth",
-    className: "theme-stealth",
-    line: "Night stealth theme activated."
+
+  germanBlue: {
+    label: "OEM German Blue",
+    className: "theme-germanBlue",
+    line: "O E M German blue theme activated."
   },
-  raceRed: {
-    label: "Race Red",
-    className: "theme-raceRed",
-    line: "Race red theme activated."
-  },
+
   dieselAmber: {
     label: "Diesel Amber",
     className: "theme-dieselAmber",
     line: "Diesel amber theme activated."
   },
-  oemBlue: {
-    label: "OEM Blue",
-    className: "theme-oemBlue",
-    line: "O E M blue theme activated."
+
+  performanceRed: {
+    label: "Performance Red",
+    className: "theme-performanceRed",
+    line: "Performance red theme activated."
+  },
+
+  stealth: {
+    label: "Stealth Tactical",
+    className: "theme-stealth",
+    line: "Stealth tactical theme activated."
+  },
+
+  iceWhite: {
+    label: "Ice White",
+    className: "theme-iceWhite",
+    line: "Ice white theme activated."
   }
 };
 
 let availableVoices = [];
 let selectedSystemVoice = null;
 let currentVoiceMode = localStorage.getItem("jettVoiceMode") || "deepCommand";
-let currentThemeMode = localStorage.getItem("jettThemeMode") || "cyber";
+let currentThemeMode = localStorage.getItem("jettThemeMode") || "legacy";
 let alertsEnabled = localStorage.getItem("jettAlertsEnabled") !== "false";
 
 let tripStart = Date.now();
