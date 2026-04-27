@@ -1051,7 +1051,7 @@ h3 {
    Allows scrolling and better phone layout
 ========================================================= */
 
-@media (max-width: 700px) {
+@media (max-width: 950px) {
   html,
   body {
     height: auto;
