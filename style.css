@@ -1045,3 +1045,130 @@ h3 {
 .setup-grid input::placeholder {
   color: rgba(234,255,255,0.45);
 }
+
+/* =========================================================
+   REVANTA OS PHONE FRIENDLY PATCH
+   Allows scrolling and better phone layout
+========================================================= */
+
+@media (max-width: 700px) {
+  html,
+  body {
+    height: auto;
+    min-height: 100%;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  .app {
+    min-height: 100vh;
+    height: auto;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  .dashboard {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto !important;
+    padding: 10px;
+    padding-bottom: 90px;
+  }
+
+  .tab {
+    overflow: visible !important;
+  }
+
+  .tab.active {
+    display: block;
+  }
+
+  .top-bar {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    text-align: left;
+  }
+
+  .status-pill-group,
+  .top-actions {
+    justify-content: flex-start;
+  }
+
+  .gauge-grid,
+  .performance-grid,
+  .quick-buttons,
+  .mode-grid,
+  .voice-grid,
+  .theme-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .gauge,
+  .hero-gauge {
+    min-height: 115px;
+  }
+
+  .gauge strong {
+    font-size: 42px;
+  }
+
+  .quick-buttons button,
+  .mode-grid button,
+  .bottom-nav button {
+    min-height: 46px;
+  }
+
+  .bottom-nav {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    grid-template-columns: repeat(2, 1fr) !important;
+    background: rgba(0, 0, 0, 0.86);
+    padding-top: 8px;
+    backdrop-filter: blur(12px);
+  }
+
+  #navTab {
+    height: auto;
+    overflow: visible;
+  }
+
+  .nav-layout {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+  }
+
+  .map-panel {
+    height: 360px;
+  }
+
+  .nav-gauges {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: none !important;
+    height: auto;
+  }
+
+  .setup-screen,
+  .boot-screen:not(.hidden) {
+    position: fixed;
+    overflow-y: auto;
+    align-items: flex-start !important;
+    padding: 18px;
+  }
+
+  .setup-card,
+  .boot-card {
+    width: 100%;
+    margin: 20px 0;
+    transform: none;
+  }
+
+  .brand-mark {
+    flex-direction: column;
+  }
+
+  .boot-card h1 {
+    font-size: 38px;
+    letter-spacing: 6px;
+  }
+}
