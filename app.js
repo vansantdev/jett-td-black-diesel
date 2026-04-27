@@ -1017,32 +1017,301 @@ function startBlePolling() {
   readBleLiveOnce();
 }
 
+let obdBleDevice = null;
+let obdBleServer = null;
+let obdBleWriteChar = null;
+let obdBleNotifyChar = null;
+let obdBleBuffer = "";
+let obdMode = "none";
+
+const OBD_SERVICE_CANDIDATES = [
+  "0000ffe0-0000-1000-8000-00805f9b34fb",
+  "0000fff0-0000-1000-8000-00805f9b34fb",
+  "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
+];
+
+const OBD_WRITE_CANDIDATES = [
+  "0000ffe1-0000-1000-8000-00805f9b34fb",
+  "0000fff2-0000-1000-8000-00805f9b34fb",
+  "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
+];
+
+const OBD_NOTIFY_CANDIDATES = [
+  "0000ffe1-0000-1000-8000-00805f9b34fb",
+  "0000fff1-0000-1000-8000-00805f9b34fb",
+  "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
+];
+
 async function connectOBD() {
-  try {
-    speak("Starting direct Bluetooth O B D connection.");
-    await connectVgateDirect();
-  } catch (error) {
-    console.error(error);
+  setValue("sourceStatus", "OBD SEARCH");
+  setValue("obdStatus", "SEARCHING");
+  speak("Searching for O B D adapter.");
 
+  if (navigator.bluetooth) {
+    try {
+      await connectOBDBluetoothDirect();
+      return;
+    } catch (error) {
+      console.warn("BLE OBD failed:", error);
+      setValue("sourceStatus", "BLE FAILED");
+      setValue("obdStatus", "TRY BRIDGE");
+      speak("Bluetooth direct connection failed. Trying local bridge.");
+    }
+  }
+
+  await connectOBDBridge();
+}
+
+async function connectOBDBluetoothDirect() {
+  obdBleDevice = await navigator.bluetooth.requestDevice({
+    filters: [
+      { namePrefix: "vLinker" },
+      { namePrefix: "V-LINK" },
+      { namePrefix: "OBD" },
+      { namePrefix: "OBDII" },
+      { namePrefix: "ELM" }
+    ],
+    optionalServices: OBD_SERVICE_CANDIDATES
+  });
+
+  obdBleDevice.addEventListener("gattserverdisconnected", () => {
     obdLive = false;
-    setValue("sourceStatus", "BLE FAIL");
-    setValue("obdStatus", "BLE FAIL");
+    obdMode = "none";
+    setValue("sourceStatus", "BLE LOST");
+    setValue("obdStatus", "DISCONNECTED");
+    speak("O B D Bluetooth disconnected.");
+  });
 
-    speak("Bluetooth O B D connection failed.");
+  setValue("sourceStatus", "BLE DEVICE");
+  setValue("obdStatus", "OPENING");
+
+  obdBleServer = await obdBleDevice.gatt.connect();
+
+  const channel = await findOBDDataChannel(obdBleServer);
+
+  obdBleWriteChar = channel.write;
+  obdBleNotifyChar = channel.notify;
+
+  await obdBleNotifyChar.startNotifications();
+  obdBleNotifyChar.addEventListener("characteristicvaluechanged", handleOBDNotification);
+
+  setValue("sourceStatus", "BLE INIT");
+  setValue("obdStatus", "INIT ECU");
+
+  await elmCommand("ATZ", 1200);
+  await elmCommand("ATE0", 400);
+  await elmCommand("ATL0", 400);
+  await elmCommand("ATS0", 400);
+  await elmCommand("ATH0", 400);
+  await elmCommand("ATSP0", 800);
+
+  const test = await elmCommand("010C", 1000);
+
+  if (!test || test.includes("NO DATA") || test.includes("?")) {
+    throw new Error("ECU did not respond to RPM PID.");
+  }
+
+  obdLive = true;
+  obdMode = "ble";
+
+  setValue("sourceStatus", "BLE LIVE");
+  setValue("obdStatus", "OBD BLE");
+  speak("V Linker Bluetooth data connected.");
+
+  startOBDPolling();
+}
+
+async function findOBDDataChannel(server) {
+  const services = await server.getPrimaryServices();
+
+  for (const service of services) {
+    const chars = await service.getCharacteristics();
+
+    let write = null;
+    let notify = null;
+
+    for (const char of chars) {
+      const id = char.uuid.toLowerCase();
+
+      if (
+        OBD_WRITE_CANDIDATES.includes(id) ||
+        char.properties.write ||
+        char.properties.writeWithoutResponse
+      ) {
+        write = char;
+      }
+
+      if (
+        OBD_NOTIFY_CANDIDATES.includes(id) ||
+        char.properties.notify ||
+        char.properties.indicate
+      ) {
+        notify = char;
+      }
+    }
+
+    if (write && notify) {
+      return { write, notify };
+    }
+  }
+
+  throw new Error("OBD connected but data channel not found.");
+}
+
+function handleOBDNotification(event) {
+  const value = event.target.value;
+  const text = new TextDecoder().decode(value);
+
+  obdBleBuffer += text;
+}
+
+async function writeOBD(text) {
+  if (!obdBleWriteChar) throw new Error("No OBD write channel.");
+
+  const data = new TextEncoder().encode(text + "\r");
+
+  if (obdBleWriteChar.properties.writeWithoutResponse) {
+    await obdBleWriteChar.writeValueWithoutResponse(data);
+  } else {
+    await obdBleWriteChar.writeValue(data);
+  }
+}
+
+async function elmCommand(command, waitMs = 600) {
+  obdBleBuffer = "";
+
+  await writeOBD(command);
+
+  await new Promise((resolve) => setTimeout(resolve, waitMs));
+
+  return cleanElmResponse(obdBleBuffer);
+}
+
+function cleanElmResponse(raw) {
+  return String(raw || "")
+    .replaceAll("\r", "")
+    .replaceAll("\n", "")
+    .replaceAll(">", "")
+    .replaceAll("SEARCHING...", "")
+    .trim()
+    .toUpperCase();
+}
+
+function parsePidNumber(response, pid) {
+  const clean = cleanElmResponse(response).replace(/\s+/g, "");
+
+  const index = clean.indexOf("41" + pid);
+
+  if (index === -1) return null;
+
+  const hex = clean.slice(index + 4);
+
+  if (hex.length < 2) return null;
+
+  return hex;
+}
+
+function parseRPM(response) {
+  const hex = parsePidNumber(response, "0C");
+  if (!hex || hex.length < 4) return null;
+
+  const a = parseInt(hex.slice(0, 2), 16);
+  const b = parseInt(hex.slice(2, 4), 16);
+
+  return ((a * 256) + b) / 4;
+}
+
+function parseSpeed(response) {
+  const hex = parsePidNumber(response, "0D");
+  if (!hex || hex.length < 2) return null;
+
+  const kph = parseInt(hex.slice(0, 2), 16);
+  return Math.round(kph * 0.621371);
+}
+
+function parseCoolant(response) {
+  const hex = parsePidNumber(response, "05");
+  if (!hex || hex.length < 2) return null;
+
+  const celsius = parseInt(hex.slice(0, 2), 16) - 40;
+  return Math.round((celsius * 9) / 5 + 32);
+}
+
+function parseIntakeTemp(response) {
+  const hex = parsePidNumber(response, "0F");
+  if (!hex || hex.length < 2) return null;
+
+  const celsius = parseInt(hex.slice(0, 2), 16) - 40;
+  return Math.round((celsius * 9) / 5 + 32);
+}
+
+function parseVoltage(response) {
+  const cleaned = cleanElmResponse(response);
+  const match = cleaned.match(/(\d+\.\d+)V?/);
+  return match ? Number(match[1]) : null;
+}
+
+function parseFuel(response) {
+  const hex = parsePidNumber(response, "2F");
+  if (!hex || hex.length < 2) return null;
+
+  const a = parseInt(hex.slice(0, 2), 16);
+  return Math.round((a * 100) / 255);
+}
+
+async function connectOBDBridge() {
+  try {
+    speak("Connecting to O B D bridge.");
+
+    const res = await fetch("http://127.0.0.1:5050/connect");
+    const data = await res.json();
+
+    if (data.connected) {
+      obdLive = true;
+      obdMode = "bridge";
+      setValue("sourceStatus", "OBD LIVE");
+      setValue("obdStatus", "BRIDGE LIVE");
+      speak("O B D bridge live data connected.");
+      startOBDPolling();
+    } else {
+      obdLive = false;
+      obdMode = "none";
+      setValue("sourceStatus", "OBD OFFLINE");
+      setValue("obdStatus", "OBD OFF");
+      speak("O B D bridge is online, but the adapter is not connected.");
+    }
+  } catch (error) {
+    obdLive = false;
+    obdMode = "none";
+    setValue("sourceStatus", "NO OBD");
+    setValue("obdStatus", "NO DATA");
+    speak("O B D connection failed.");
   }
 }
 
 async function disconnectOBD() {
-  try {
-    await fetch("/disconnect");
-  } catch (error) {}
-
-  obdLive = false;
-
   if (obdTimer) {
     clearInterval(obdTimer);
     obdTimer = null;
   }
+
+  if (obdMode === "bridge") {
+    try {
+      await fetch("http://127.0.0.1:5050/disconnect");
+    } catch (error) {}
+  }
+
+  if (obdBleDevice && obdBleDevice.gatt && obdBleDevice.gatt.connected) {
+    obdBleDevice.gatt.disconnect();
+  }
+
+  obdLive = false;
+  obdMode = "none";
+  obdBleDevice = null;
+  obdBleServer = null;
+  obdBleWriteChar = null;
+  obdBleNotifyChar = null;
+  obdBleBuffer = "";
 
   setValue("sourceStatus", "DISCONNECTED");
   setValue("obdStatus", "OBD OFF");
@@ -1053,13 +1322,69 @@ async function disconnectOBD() {
 function startOBDPolling() {
   if (obdTimer) clearInterval(obdTimer);
 
-  obdTimer = setInterval(readOBDLive, 1000);
+  obdTimer = setInterval(readOBDLive, 1200);
   readOBDLive();
 }
 
 async function readOBDLive() {
+  if (obdMode === "ble") {
+    return readOBDLiveBLE();
+  }
+
+  return readOBDLiveBridge();
+}
+
+async function readOBDLiveBLE() {
   try {
-    const res = await fetch("/live");
+    const rpmRaw = await elmCommand("010C", 350);
+    const speedRaw = await elmCommand("010D", 350);
+    const coolantRaw = await elmCommand("0105", 350);
+    const intakeRaw = await elmCommand("010F", 350);
+    const voltageRaw = await elmCommand("ATRV", 350);
+    const fuelRaw = await elmCommand("012F", 350);
+
+    const rpm = parseRPM(rpmRaw);
+    const speed = parseSpeed(speedRaw);
+    const coolant = parseCoolant(coolantRaw);
+    const intake = parseIntakeTemp(intakeRaw);
+    const voltage = parseVoltage(voltageRaw);
+    const fuel = parseFuel(fuelRaw);
+
+    if (rpm !== null) setValue("rpmValue", Math.round(rpm));
+    if (speed !== null) {
+      setValue("speedValue", speed);
+      setValue("gpsStatus", "OBD");
+      updateSpeedStats(speed);
+    }
+    if (coolant !== null) setValue("coolantValue", coolant);
+    if (intake !== null) setValue("intakeValue", `${intake} °F`);
+    if (voltage !== null) setValue("batteryValue", `${voltage.toFixed(1)} V`);
+    if (fuel !== null) updateFuelStatus(`${fuel}%`);
+
+    const liveSpeed = Number(getText("speedValue", "0"));
+    const liveRpm = Number(getText("rpmValue", "0"));
+    const boost = Number(getText("boostValue", "0"));
+    const liveCoolant = Number(getText("coolantValue", "0"));
+
+    setValue("sourceStatus", "BLE LIVE");
+    setValue("obdStatus", "OBD BLE");
+
+    checkDrivingAlerts(liveSpeed, liveRpm, boost, liveCoolant);
+    checkBatteryAlert(voltage);
+    updateAmbientGlow(liveSpeed, liveRpm, boost);
+    checkZeroToSixty(liveSpeed);
+    syncNavGauges();
+    updateHeaderBadges();
+  } catch (error) {
+    console.warn("BLE read error:", error);
+    setValue("sourceStatus", "BLE READ ERR");
+    setValue("obdStatus", "RETRYING");
+  }
+}
+
+async function readOBDLiveBridge() {
+  try {
+    const res = await fetch("http://127.0.0.1:5050/live");
     const data = await res.json();
 
     if (!data.connected) {
@@ -1070,13 +1395,14 @@ async function readOBDLive() {
     }
 
     setValue("sourceStatus", "OBD LIVE");
-    setValue("obdStatus", "OBD LIVE");
+    setValue("obdStatus", "BRIDGE LIVE");
 
     if (data.rpm !== null) setValue("rpmValue", Math.round(data.rpm));
     if (data.coolant !== null) setValue("coolantValue", Math.round(data.coolant));
     if (data.boost !== null) setValue("boostValue", Number(data.boost).toFixed(1));
     if (data.voltage !== null) setValue("batteryValue", `${Number(data.voltage).toFixed(1)} V`);
     if (data.intakeTemp !== null) setValue("intakeValue", `${Math.round(data.intakeTemp)} °F`);
+
     if (data.fuelLevel !== null && data.fuelLevel !== undefined) {
       updateFuelStatus(`${Math.round(data.fuelLevel)}%`);
     }
@@ -1106,10 +1432,32 @@ async function readOBDLive() {
 }
 
 async function scanCodes() {
+  if (obdMode === "ble") {
+    speak("Scanning diagnostic codes over Bluetooth.");
+
+    try {
+      const response = await elmCommand("03", 1200);
+
+      if (!response || response.includes("NO DATA") || response.includes("43") === false) {
+        setValue("codeStatus", "CLEAR");
+        speak("No diagnostic codes found.");
+        return;
+      }
+
+      setValue("codeStatus", "CODES");
+      speak("Diagnostic response received.");
+      return;
+    } catch (error) {
+      setValue("codeStatus", "ERROR");
+      speak("Bluetooth code scan failed.");
+      return;
+    }
+  }
+
   try {
     speak("Scanning diagnostic codes.");
 
-    const res = await fetch("/codes");
+    const res = await fetch("http://127.0.0.1:5050/codes");
     const data = await res.json();
 
     if (!data.connected) {
@@ -1130,15 +1478,6 @@ async function scanCodes() {
     setValue("codeStatus", "ERROR");
     speak("Code scan failed.");
   }
-}
-function startZeroToSixty() {
-  performance.zeroToSixtyActive = true;
-  performance.zeroToSixtyStart = null;
-
-  setValue("zeroSixtyTime", "ARMED");
-  setValue("zeroSixtyStatus", "Start from stop");
-
-  speak("Zero to sixty timer armed. Begin from a stop.");
 }
 
 function startZeroSixty() {
