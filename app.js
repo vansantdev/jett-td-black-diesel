@@ -198,15 +198,15 @@ function getVehicleProfile() {
 
 function getDefaultProfile() {
   return {
-    owner: "Danker",
-    vehicleName: "JETT TD",
-    make: "Volkswagen",
-    model: "Jetta",
-    year: "2006",
-    engine: "1.9 TDI BRM",
+    owner: "Driver",
+    vehicleName: "Demo Vehicle",
+    make: "",
+    model: "",
+    year: "",
+    engine: "",
     fuel: "Diesel",
     theme: "legacy",
-    commandName: "Black Diesel Command"
+    commandName: "Revanta Command"
   };
 }
 
@@ -313,7 +313,7 @@ function systemChime() {
 
 function playStartupSound() {
   systemChime();
-  speak("{vehicle} systems online.");
+  speak("Revanta OS online. {vehicle} profile loaded.");
   logCommand("Startup sound played.");
 }
 
@@ -361,7 +361,7 @@ function updateVoiceLabel() {
 
 function testCurrentVoice() {
   const mode = voiceModes[currentVoiceMode];
-  speak(`${mode.label} selected. {vehicle} command system is online.`);
+  speak(`${mode.label} selected. Revanta OS is online for {vehicle}.`);
 }
 
 function speakCurrentStartup() {
@@ -1413,10 +1413,9 @@ function saveVehicleProfile() {
     model: document.getElementById("setupModel").value || "",
     year: document.getElementById("setupYear").value || "",
     engine: document.getElementById("setupEngine").value || "",
-    fuel: document.getElementById("setupFuel").value || "",
+    fuel: document.getElementById("setupFuel").value || "Diesel",
     theme: document.getElementById("setupTheme").value || "legacy",
-    commandName:
-      document.getElementById("setupCommandName").value || "Vehicle Command"
+    commandName: document.getElementById("setupCommandName").value || "Revanta Command"
   };
 
   localStorage.setItem("vehicleProfile", JSON.stringify(profile));
@@ -1476,22 +1475,19 @@ function factoryReset() {
 }
 
 function cinematicStartup() {
-  applyVehicleProfile();
-
   const bootStatus = document.getElementById("bootStatus");
   const bootLog = document.getElementById("bootLog");
-
   const profile = getActiveProfile();
 
   const steps = [
-    "IGNITION SIGNAL DETECTED",
-    `${profile.vehicleName || "VEHICLE"} PROFILE LOADED`,
+    "REVANTA OS BOOTING",
+    "DRIVER PROFILE LOADED",
+    `${profile.vehicleName || "VEHICLE"} LINK ESTABLISHED`,
     `${profile.engine || "ENGINE"} SYSTEM READY`,
-    "VOICE MATRIX ONLINE",
     "GPS SYSTEM READY",
     "OBD BRIDGE STANDBY",
-    "BOOST MONITOR ARMED",
-    `${profile.commandName || "COMMAND"} ONLINE`
+    "SENSOR NETWORK READY",
+    "DRIVER INTERFACE ONLINE"
   ];
 
   let i = 0;
@@ -1553,13 +1549,13 @@ function showTab(tabName) {
   const profile = getActiveProfile();
 
   const titles = {
-    dash: profile.commandName || "Vehicle Command",
-    performance: "PERFORMANCE SYSTEMS",
-    command: "COMMAND CENTER",
-    copilot: "AI COPILOT",
-    nav: "NAVIGATION MODE",
-    settings: "SYSTEM SETTINGS"
-  };
+  dash: profile.commandName || "Revanta Command",
+  performance: "PERFORMANCE SYSTEMS",
+  command: "COMMAND CENTER",
+  copilot: "AI COPILOT",
+  nav: "NAVIGATION MODE",
+  settings: "SYSTEM SETTINGS"
+};
 
   setValue("pageTitle", titles[tabName] || profile.commandName || "Vehicle Command");
 
@@ -1700,8 +1696,35 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("bootScreen").classList.remove("hidden");
     document.getElementById("dashboard").classList.add("hidden");
 
-    applyVehicleProfile();
+    function applyVehicleProfile() {
+  const profile = getActiveProfile();
+
+  const appName = "REVANTA OS";
+  const vehicleName = profile.vehicleName || "Vehicle";
+  const commandName = profile.commandName || "Revanta Command";
+
+  document.querySelectorAll(".top-bar h1").forEach((el) => {
+    el.textContent = appName;
+  });
+
+  document.querySelectorAll(".boot-card h1").forEach((el) => {
+    el.textContent = appName;
+  });
+
+  document.querySelectorAll(".boot-card p").forEach((el) => {
+    el.textContent = "VEHICLE COMMAND PLATFORM";
+  });
+
+  setValue("pageTitle", `${commandName} • ${vehicleName}`);
+
+  document.title = `Revanta OS • ${vehicleName}`;
+
+  if (profile.theme) {
+    currentThemeMode = profile.theme;
+    localStorage.setItem("jettThemeMode", profile.theme);
+    applyTheme();
   }
+}
 
   updateVoiceLabel();
   applyTheme();
