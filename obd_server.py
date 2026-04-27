@@ -1,12 +1,14 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 import obd
 import time
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=".")
 CORS(app)
 
 connection = None
+
 last_data = {
     "connected": False,
     "source": "OFFLINE",
@@ -42,16 +44,30 @@ def connect_obd():
         return True
 
     try:
+        # Auto-detects COM port. If needed later, replace with obd.OBD("COM5", fast=False, timeout=5)
         connection = obd.OBD(fast=False, timeout=5)
         return connection.is_connected()
     except Exception:
         connection = None
         return False
 
+@app.route("/")
+def serve_app():
+    return send_from_directory(".", "index.html")
+
+@app.route("/<path:path>")
+def serve_files(path):
+    file_path = os.path.join(".", path)
+
+    if os.path.exists(file_path):
+        return send_from_directory(".", path)
+
+    return send_from_directory(".", "index.html")
+
 @app.route("/connect")
 def connect():
     ok = connect_obd()
-    return jsonify({"connected": ok})
+    return jsonify({"connected": ok, "source": "OBD LIVE" if ok else "OFFLINE"})
 
 @app.route("/disconnect")
 def disconnect():
@@ -67,7 +83,7 @@ def disconnect():
     last_data["connected"] = False
     last_data["source"] = "DISCONNECTED"
 
-    return jsonify({"connected": False})
+    return jsonify({"connected": False, "source": "DISCONNECTED"})
 
 @app.route("/live")
 def live():
@@ -94,8 +110,8 @@ def live():
         map_kpa = safe_value(map_sensor, "kPa")
 
         boost_psi = None
-        if map_kpa is not None:
-            # Approx boost = MAP absolute pressure minus atmosphere
+
+        if isinstance(map_kpa, (int, float)):
             boost_psi = round((map_kpa - 101.3) * 0.145038, 1)
             if boost_psi < 0:
                 boost_psi = 0
@@ -129,11 +145,13 @@ def codes():
 
     try:
         response = connection.query(obd.commands.GET_DTC)
-        codes = response.value if not response.is_null() else []
-        return jsonify({"connected": True, "codes": codes})
+        code_list = response.value if not response.is_null() else []
+        return jsonify({"connected": True, "codes": code_list})
     except Exception:
         return jsonify({"connected": True, "codes": []})
 
 if __name__ == "__main__":
-    print("JETT TD OBD bridge running on http://127.0.0.1:5050")
-    app.run(host="127.0.0.1", port=5050, debug=False)
+    print("Revanta OBD bridge running.")
+    print("Open this on the same computer: http://127.0.0.1:5050")
+    print("Open this on your phone using your computer IP: http://YOUR-IP:5050")
+    app.run(host="0.0.0.0", port=5050, debug=False)

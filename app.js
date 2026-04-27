@@ -791,7 +791,7 @@ async function connectOBD() {
   try {
     speak("Connecting to O B D bridge.");
 
-    const res = await fetch("http://127.0.0.1:5050/connect");
+    const res = await fetch("/connect");
     const data = await res.json();
 
     if (data.connected) {
@@ -816,7 +816,7 @@ async function connectOBD() {
 
 async function disconnectOBD() {
   try {
-    await fetch("http://127.0.0.1:5050/disconnect");
+    await fetch("/disconnect");
   } catch (error) {}
 
   obdLive = false;
@@ -841,7 +841,7 @@ function startOBDPolling() {
 
 async function readOBDLive() {
   try {
-    const res = await fetch("http://127.0.0.1:5050/live");
+    const res = await fetch("/live");
     const data = await res.json();
 
     if (!data.connected) {
@@ -891,7 +891,7 @@ async function scanCodes() {
   try {
     speak("Scanning diagnostic codes.");
 
-    const res = await fetch("http://127.0.0.1:5050/codes");
+    const res = await fetch("/codes");
     const data = await res.json();
 
     if (!data.connected) {
@@ -1644,7 +1644,7 @@ setInterval(updateHeaderBadges, 1500);
 setInterval(updateCopilotBlocks, 2000);
 
 document.addEventListener("DOMContentLoaded", () => {
-  if (localStorage.getItem("setupComplete") !== "true") {
+  if (localStorage.getItem("revantaSetupComplete") !== "true") {
     document.getElementById("setupScreen").classList.remove("hidden");
     document.getElementById("bootScreen").classList.add("hidden");
     document.getElementById("dashboard").classList.add("hidden");
