@@ -714,3 +714,38 @@ body.security-mode .app::before {
     opacity: 1;
   }
 }
+
+.boot-screen {
+  min-height: 100vh;
+  width: 100%;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding-top: 60px;
+}
+
+.boot-card {
+  transform: translateY(35px);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.boot-screen.hidden,
+.setup-screen.hidden,
+.dashboard.hidden,
+.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.boot-screen:not(.hidden) {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: grid !important;
+  place-items: center !important;
+  padding: 24px;
+}

@@ -146,11 +146,11 @@ const themeModes = {
 let availableVoices = [];
 let selectedSystemVoice = null;
 
-let currentVoiceMode = localStorage.getItem("jettVoiceMode") || "deepCommand";
-let currentThemeMode = localStorage.getItem("jettThemeMode") || "legacy";
-let alertsEnabled = localStorage.getItem("jettAlertsEnabled") !== "false";
-let autoThemeEnabled = localStorage.getItem("jettAutoTheme") === "true";
-let showModeActive = localStorage.getItem("jettShowMode") === "true";
+let currentVoiceMode = localStorage.getItem("revantaVoiceMode") || "deepCommand";
+let currentThemeMode = localStorage.getItem("revantaThemeMode") || "legacy";
+let alertsEnabled = localStorage.getItem("revantaAlertsEnabled") !== "false";
+let autoThemeEnabled = localStorage.getItem("revantaAutoTheme") === "true";
+let showModeActive = localStorage.getItem("revantaShowMode") === "true";
 
 let tripStart = Date.now();
 let speedSamples = [];
@@ -170,7 +170,7 @@ let lastGpsTime = null;
 let performance = {
   zeroToSixtyActive: false,
   zeroToSixtyStart: null,
-  bestZeroToSixty: localStorage.getItem("jettBest060") || "--",
+  bestZeroToSixty: localStorage.getItem("revantaBest060") || "--",
   peakBoost: 0,
   maxRpm: 850,
   drivingScore: 100,
@@ -348,7 +348,7 @@ function setVoiceMode(modeName) {
   if (!voiceModes[modeName]) return;
 
   currentVoiceMode = modeName;
-  localStorage.setItem("jettVoiceMode", modeName);
+  localStorage.setItem("revantaVoiceMode", modeName);
 
   loadSystemVoices();
   updateVoiceLabel();
@@ -373,7 +373,7 @@ function setThemeMode(themeName, silent = false) {
   if (!themeModes[themeName]) return;
 
   currentThemeMode = themeName;
-  localStorage.setItem("jettThemeMode", themeName);
+  localStorage.setItem("revantaThemeMode", themeName);
   applyTheme();
 
   if (!silent) speak(themeModes[themeName].line);
@@ -392,7 +392,7 @@ function applyTheme() {
 
 function toggleAlerts() {
   alertsEnabled = !alertsEnabled;
-  localStorage.setItem("jettAlertsEnabled", alertsEnabled ? "true" : "false");
+  localStorage.setItem("revantaAlertsEnabled", alertsEnabled ? "true" : "false");
 
   updateSystemLabels();
   speak(alertsEnabled ? "Driving alerts enabled." : "Driving alerts disabled.");
@@ -400,7 +400,7 @@ function toggleAlerts() {
 
 function toggleAutoTheme() {
   autoThemeEnabled = !autoThemeEnabled;
-  localStorage.setItem("jettAutoTheme", autoThemeEnabled ? "true" : "false");
+  localStorage.setItem("revantaAutoTheme", autoThemeEnabled ? "true" : "false");
 
   updateSystemLabels();
   applyTheme();
@@ -950,7 +950,7 @@ function checkZeroToSixty(speed) {
       Number(time) < Number(performance.bestZeroToSixty)
     ) {
       performance.bestZeroToSixty = time;
-      localStorage.setItem("jettBest060", time);
+      localStorage.setItem("revantaBest060", time);
       speak(`New best zero to sixty. ${time} seconds.`);
     } else {
       speak(`Zero to sixty complete. ${time} seconds.`);
@@ -988,7 +988,7 @@ function toggleAmbientGlow() {
 
 function activateShowMode() {
   showModeActive = !showModeActive;
-  localStorage.setItem("jettShowMode", showModeActive ? "true" : "false");
+  localStorage.setItem("revantaShowMode", showModeActive ? "true" : "false");
 
   if (showModeActive) {
     performance.spoolMode = false;
@@ -1306,12 +1306,14 @@ function startWakeWord() {
     const transcript =
       event.results[event.results.length - 1][0].transcript.toLowerCase();
 
-    if (
-      transcript.includes("hey jett") ||
-      transcript.includes("hey jet") ||
-      transcript.includes("vehicle command") ||
-      transcript.includes("command system")
-    ) {
+    const wakeName = getCommandName().toLowerCase();
+
+if (
+  transcript.includes("hey revanta") ||
+  transcript.includes(wakeName) ||
+  transcript.includes("vehicle command") ||
+  transcript.includes("command system")
+) {
       wakeListening = false;
       updateSystemLabels();
 
@@ -1376,75 +1378,77 @@ function stopWakeWord() {
   speak("Wake word disabled.");
 }
 
-function applyVehicleProfile() {
+  function applyVehicleProfile() {
   const profile = getActiveProfile();
 
-  const appName = profile.vehicleName || "Vehicle";
-  const commandName = profile.commandName || "Vehicle Command";
+  const vehicleName = profile.vehicleName || "Vehicle";
+  const commandName = profile.commandName || "Revanta Command";
 
   document.querySelectorAll(".top-bar h1").forEach((el) => {
-    el.textContent = appName;
-  });
-
-  document.querySelectorAll(".boot-card h1").forEach((el) => {
-    el.textContent = appName;
-  });
-
-  document.querySelectorAll(".boot-card p").forEach((el) => {
-    el.textContent = commandName;
+    el.textContent = vehicleName;
   });
 
   setValue("pageTitle", commandName);
-
-  document.title = `${appName} ${commandName}`;
+  document.title = `${vehicleName} ${commandName}`;
 
   if (profile.theme) {
     currentThemeMode = profile.theme;
-    localStorage.setItem("jettThemeMode", profile.theme);
+    localStorage.setItem("revantaThemeMode", profile.theme);
     applyTheme();
   }
 }
 
 function saveVehicleProfile() {
   const profile = {
-    owner: document.getElementById("setupOwner").value || "Driver",
-    vehicleName: document.getElementById("setupVehicleName").value || "Vehicle",
-    make: document.getElementById("setupMake").value || "",
-    model: document.getElementById("setupModel").value || "",
-    year: document.getElementById("setupYear").value || "",
-    engine: document.getElementById("setupEngine").value || "",
-    fuel: document.getElementById("setupFuel").value || "Diesel",
-    theme: document.getElementById("setupTheme").value || "legacy",
-    commandName: document.getElementById("setupCommandName").value || "Revanta Command"
+    owner: document.getElementById("setupOwner")?.value.trim() || "Driver",
+    vehicleName: document.getElementById("setupVehicleName")?.value.trim() || "Demo Vehicle",
+    make: document.getElementById("setupMake")?.value.trim() || "",
+    model: document.getElementById("setupModel")?.value.trim() || "",
+    year: document.getElementById("setupYear")?.value.trim() || "",
+    engine: document.getElementById("setupEngine")?.value.trim() || "",
+    fuel: document.getElementById("setupFuel")?.value || "Diesel",
+    theme: document.getElementById("setupTheme")?.value || "legacy",
+    commandName: document.getElementById("setupCommandName")?.value.trim() || "Revanta Command"
   };
 
   localStorage.setItem("vehicleProfile", JSON.stringify(profile));
-  localStorage.setItem("setupComplete", "true");
+  localStorage.setItem("revantaSetupComplete", "true");
+  localStorage.setItem("revantaThemeMode", profile.theme);
 
-  document.getElementById("setupScreen").classList.add("hidden");
-  document.getElementById("bootScreen").classList.remove("hidden");
-  document.getElementById("dashboard").classList.add("hidden");
+  currentThemeMode = profile.theme;
 
   applyVehicleProfile();
+  showBootScreen();
+
   speak(`${profile.vehicleName} profile saved. ${profile.commandName} online.`);
 }
 
+function showBootScreen() {
+  const setup = document.getElementById("setupScreen");
+  const boot = document.getElementById("bootScreen");
+  const dash = document.getElementById("dashboard");
+
+  if (setup) setup.classList.add("hidden");
+  if (boot) boot.classList.remove("hidden");
+  if (dash) dash.classList.add("hidden");
+
+  applyTheme();
+}
+
 function skipSetup() {
-  localStorage.setItem("setupComplete", "true");
-
-  document.getElementById("setupScreen").classList.add("hidden");
-  document.getElementById("bootScreen").classList.remove("hidden");
-  document.getElementById("dashboard").classList.add("hidden");
-
-  applyVehicleProfile();
+  showBootScreen();
 }
 
 function runSetupWizard() {
   const profile = getActiveProfile();
 
-  document.getElementById("setupScreen").classList.remove("hidden");
-  document.getElementById("bootScreen").classList.add("hidden");
-  document.getElementById("dashboard").classList.add("hidden");
+  const setup = document.getElementById("setupScreen");
+  const boot = document.getElementById("bootScreen");
+  const dash = document.getElementById("dashboard");
+
+  if (setup) setup.classList.remove("hidden");
+  if (boot) boot.classList.add("hidden");
+  if (dash) dash.classList.add("hidden");
 
   document.getElementById("setupOwner").value = profile.owner || "";
   document.getElementById("setupVehicleName").value = profile.vehicleName || "";
@@ -1459,75 +1463,28 @@ function runSetupWizard() {
   logCommand("Setup wizard opened.");
 }
 
-function exportVehicleProfile() {
-  const data = localStorage.getItem("vehicleProfile") || "No profile saved.";
-
-  navigator.clipboard.writeText(data);
-  logCommand("Vehicle profile copied to clipboard.");
-}
-
-function factoryReset() {
-  if (confirm("Reset vehicle command settings?")) {
-    localStorage.clear();
-    logCommand("Factory reset complete.");
-    location.reload();
-  }
-}
-
-function cinematicStartup() {
-  const bootStatus = document.getElementById("bootStatus");
-  const bootLog = document.getElementById("bootLog");
-  const profile = getActiveProfile();
-
-  const steps = [
-    "REVANTA OS BOOTING",
-    "DRIVER PROFILE LOADED",
-    `${profile.vehicleName || "VEHICLE"} LINK ESTABLISHED`,
-    `${profile.engine || "ENGINE"} SYSTEM READY`,
-    "GPS SYSTEM READY",
-    "OBD BRIDGE STANDBY",
-    "SENSOR NETWORK READY",
-    "DRIVER INTERFACE ONLINE"
-  ];
-
-  let i = 0;
-
-  if (bootLog) bootLog.innerHTML = "";
-
-  beep();
-
-  const interval = setInterval(() => {
-    const step = steps[i];
-
-    if (bootStatus) bootStatus.textContent = step;
-    if (bootLog) bootLog.innerHTML += `<div>> ${step}</div>`;
-
-    beep();
-    i++;
-
-    if (i >= steps.length) {
-      clearInterval(interval);
-
-      setTimeout(() => {
-        document.getElementById("bootScreen").classList.add("hidden");
-        document.getElementById("dashboard").classList.remove("hidden");
-
-        updateVoiceLabel();
-        applyTheme();
-        applyVehicleProfile();
-        updateSystemLabels();
-        updateHeaderBadges();
-        updateCopilotBlocks();
-        syncNavGauges();
-
-        speakCurrentStartup();
-      }, 450);
-    }
-  }, 420);
-}
-
 function startSystem() {
-  cinematicStartup();
+  const setup = document.getElementById("setupScreen");
+  const boot = document.getElementById("bootScreen");
+  const dash = document.getElementById("dashboard");
+
+  if (setup) setup.classList.add("hidden");
+  if (boot) boot.classList.add("hidden");
+
+  if (dash) {
+    dash.classList.remove("hidden");
+    dash.style.display = "flex";
+  }
+
+  applyVehicleProfile();
+  applyTheme();
+  updateVoiceLabel();
+  updateSystemLabels();
+  updateHeaderBadges();
+  updateCopilotBlocks();
+  syncNavGauges();
+
+  speakCurrentStartup();
 }
 
 function showTab(tabName) {

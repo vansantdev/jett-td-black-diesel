@@ -1,4 +1,4 @@
-const CACHE_NAME = "jett-td-v1";
+const CACHE_NAME = "revanta-os-v2";
 
 const FILES_TO_CACHE = [
   "./",
