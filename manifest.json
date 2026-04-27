@@ -1,7 +1,7 @@
 {
-  "name": "JETT TD Black Diesel",
-  "short_name": "JETT TD",
-  "description": "Custom vehicle command center for live gauges, diagnostics, navigation, voice alerts, and driver systems.",
+  "name": "Revanta OS",
+  "short_name": "Revanta",
+  "description": "Universal vehicle command interface.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -18,12 +18,6 @@
       "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
-    },
-    {
-      "src": "icons/maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ]
 }
