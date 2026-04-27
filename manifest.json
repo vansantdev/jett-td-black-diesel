@@ -11,21 +11,21 @@
   "background_color": "#03050a",
   "theme_color": "#00eaff",
   "icons": [
-    {
-      "src": "/jett-td-black-diesel/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/jett-td-black-diesel/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "/jett-td-black-diesel/icons/maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
-  ]
+  {
+    "src": "/jett-td-black-diesel/icons/icon-192-v2.png",
+    "sizes": "192x192",
+    "type": "image/png"
+  },
+  {
+    "src": "/jett-td-black-diesel/icons/icon-512-v2.png",
+    "sizes": "512x512",
+    "type": "image/png"
+  },
+  {
+    "src": "/jett-td-black-diesel/icons/maskable-512-v2.png",
+    "sizes": "512x512",
+    "type": "image/png",
+    "purpose": "any maskable"
+  }
+]
 }
