@@ -1,10 +1,12 @@
 {
+  "id": "/jett-td-black-diesel/",
   "name": "Revanta OS",
   "short_name": "Revanta",
   "description": "Universal vehicle command interface.",
-  "start_url": "/jett-td-black-diesel/index.html",
+  "start_url": "/jett-td-black-diesel/?source=pwa",
   "scope": "/jett-td-black-diesel/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "any",
   "background_color": "#03050a",
   "theme_color": "#00eaff",

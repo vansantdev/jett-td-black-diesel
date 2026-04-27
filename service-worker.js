@@ -1,4 +1,4 @@
-const CACHE_NAME = "revanta-os-v5";
+const CACHE_NAME = "revanta-os-v6";
 
 const FILES_TO_CACHE = [
   "./",
