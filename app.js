@@ -787,30 +787,248 @@ async function weatherLayer() {
   );
 }
 
+let bleDevice = null;
+let bleServer = null;
+let bleWriteChar = null;
+let bleNotifyChar = null;
+let bleBuffer = "";
+
+const BLE_UART_SERVICES = [
+  0xfff0,
+  0xffe0,
+  "0000fff0-0000-1000-8000-00805f9b34fb",
+  "0000ffe0-0000-1000-8000-00805f9b34fb"
+];
+
+async function connectVgateDirect() {
+  if (!navigator.bluetooth) {
+    speak("Direct Bluetooth is not supported in this browser. Use Chrome on Android.");
+    setValue("obdStatus", "BLE UNSUPPORTED");
+    return;
+  }
+
+  try {
+    speak("Scanning for Vgate Bluetooth adapter.");
+    setValue("obdStatus", "BLE SCAN");
+
+    bleDevice = await navigator.bluetooth.requestDevice({
+      filters: [
+        { namePrefix: "vLinker" },
+        { namePrefix: "V-LINK" },
+        { namePrefix: "OBD" },
+        { namePrefix: "ELM" }
+      ],
+      optionalServices: BLE_UART_SERVICES
+    });
+
+    bleDevice.addEventListener("gattserverdisconnected", () => {
+      obdLive = false;
+      setValue("obdStatus", "BLE LOST");
+      setValue("sourceStatus", "BLE LOST");
+      speak("Bluetooth adapter disconnected.");
+    });
+
+    bleServer = await bleDevice.gatt.connect();
+
+    let found = false;
+
+    for (const serviceId of BLE_UART_SERVICES) {
+      try {
+        const service = await bleServer.getPrimaryService(serviceId);
+        const chars = await service.getCharacteristics();
+
+        for (const char of chars) {
+          const p = char.properties;
+
+          if (!bleWriteChar && (p.write || p.writeWithoutResponse)) {
+            bleWriteChar = char;
+          }
+
+          if (!bleNotifyChar && (p.notify || p.indicate)) {
+            bleNotifyChar = char;
+          }
+        }
+
+        if (bleWriteChar && bleNotifyChar) {
+          found = true;
+          break;
+        }
+      } catch (e) {}
+    }
+
+    if (!found) {
+      setValue("obdStatus", "BLE NO UART");
+      speak("Adapter connected, but O B D data channel was not found.");
+      return;
+    }
+
+    await bleNotifyChar.startNotifications();
+    bleNotifyChar.addEventListener("characteristicvaluechanged", handleBleNotify);
+
+    obdLive = true;
+    setValue("obdStatus", "BLE LIVE");
+    setValue("sourceStatus", "VGATE BLE");
+
+    await initElm327();
+    startBlePolling();
+
+    speak("Vgate direct Bluetooth connected.");
+  } catch (error) {
+    console.error(error);
+    setValue("obdStatus", "BLE FAIL");
+    setValue("sourceStatus", "BLE FAIL");
+    speak("Bluetooth connection failed.");
+  }
+}
+
+function handleBleNotify(event) {
+  const decoder = new TextDecoder();
+  bleBuffer += decoder.decode(event.target.value);
+}
+
+async function bleSend(command) {
+  if (!bleWriteChar) throw new Error("No BLE write characteristic");
+
+  const encoder = new TextEncoder();
+  const data = encoder.encode(command + "\r");
+
+  if (bleWriteChar.properties.writeWithoutResponse) {
+    await bleWriteChar.writeValueWithoutResponse(data);
+  } else {
+    await bleWriteChar.writeValue(data);
+  }
+}
+
+async function elmCommand(command, waitMs = 350) {
+  bleBuffer = "";
+  await bleSend(command);
+
+  await new Promise((resolve) => setTimeout(resolve, waitMs));
+
+  return bleBuffer
+    .replaceAll("\r", " ")
+    .replaceAll("\n", " ")
+    .replaceAll(">", "")
+    .trim();
+}
+
+async function initElm327() {
+  await elmCommand("ATZ", 900);
+  await elmCommand("ATE0", 300);
+  await elmCommand("ATL0", 300);
+  await elmCommand("ATS0", 300);
+  await elmCommand("ATH0", 300);
+  await elmCommand("ATSP0", 300);
+}
+
+function parsePidBytes(raw, pid) {
+  const clean = raw.replace(/[^0-9A-Fa-f ]/g, " ").toUpperCase();
+  const parts = clean.split(/\s+/).filter(Boolean);
+
+  const idx = parts.findIndex((p, i) => p === "41" && parts[i + 1] === pid);
+
+  if (idx === -1) return null;
+
+  return parts.slice(idx + 2).map((x) => parseInt(x, 16));
+}
+
+async function readBlePid(command, pid) {
+  const raw = await elmCommand(command, 300);
+  return parsePidBytes(raw, pid);
+}
+
+async function readBleLiveOnce() {
+  if (!obdLive || !bleWriteChar) return;
+
+  try {
+    const rpmBytes = await readBlePid("010C", "0C");
+    const speedBytes = await readBlePid("010D", "0D");
+    const coolantBytes = await readBlePid("0105", "05");
+    const intakeBytes = await readBlePid("010F", "0F");
+    const mapBytes = await readBlePid("010B", "0B");
+    const voltageRaw = await elmCommand("ATRV", 300);
+
+    let rpm = null;
+    let speed = null;
+    let coolant = null;
+    let intake = null;
+    let map = null;
+    let boost = null;
+    let voltage = null;
+
+    if (rpmBytes && rpmBytes.length >= 2) {
+      rpm = ((rpmBytes[0] * 256) + rpmBytes[1]) / 4;
+    }
+
+    if (speedBytes && speedBytes.length >= 1) {
+      speed = Math.round(speedBytes[0] * 0.621371);
+    }
+
+    if (coolantBytes && coolantBytes.length >= 1) {
+      coolant = Math.round(((coolantBytes[0] - 40) * 9) / 5 + 32);
+    }
+
+    if (intakeBytes && intakeBytes.length >= 1) {
+      intake = Math.round(((intakeBytes[0] - 40) * 9) / 5 + 32);
+    }
+
+    if (mapBytes && mapBytes.length >= 1) {
+      map = mapBytes[0];
+      boost = Math.max(0, Number(((map - 101.3) * 0.145038).toFixed(1)));
+    }
+
+    const voltageMatch = voltageRaw.match(/(\d+(\.\d+)?)/);
+    if (voltageMatch) voltage = Number(voltageMatch[1]);
+
+    if (rpm !== null) setValue("rpmValue", Math.round(rpm));
+    if (speed !== null) {
+      setValue("speedValue", speed);
+      updateSpeedStats(speed);
+    }
+    if (coolant !== null) setValue("coolantValue", coolant);
+    if (boost !== null) setValue("boostValue", boost.toFixed(1));
+    if (voltage !== null) setValue("batteryValue", `${voltage.toFixed(1)} V`);
+    if (intake !== null) setValue("intakeValue", `${intake} °F`);
+
+    setValue("sourceStatus", "VGATE BLE");
+    setValue("obdStatus", "BLE LIVE");
+
+    const finalSpeed = Number(getText("speedValue", "0"));
+    const finalRpm = Number(getText("rpmValue", "0"));
+    const finalBoost = Number(getText("boostValue", "0"));
+    const finalCoolant = Number(getText("coolantValue", "0"));
+
+    checkDrivingAlerts(finalSpeed, finalRpm, finalBoost, finalCoolant);
+    checkBatteryAlert(voltage);
+    updateAmbientGlow(finalSpeed, finalRpm, finalBoost);
+    checkZeroToSixty(finalSpeed);
+    syncNavGauges();
+    updateHeaderBadges();
+  } catch (error) {
+    console.error(error);
+    setValue("obdStatus", "BLE ERROR");
+  }
+}
+
+function startBlePolling() {
+  if (obdTimer) clearInterval(obdTimer);
+
+  obdTimer = setInterval(readBleLiveOnce, 1000);
+  readBleLiveOnce();
+}
+
 async function connectOBD() {
   try {
-    speak("Connecting to O B D bridge.");
-
-    const res = await fetch("/connect");
-    const data = await res.json();
-
-    if (data.connected) {
-      obdLive = true;
-      setValue("sourceStatus", "OBD LIVE");
-      setValue("obdStatus", "OBD LIVE");
-      speak("O B D live data connected.");
-      startOBDPolling();
-    } else {
-      obdLive = false;
-      setValue("sourceStatus", "OBD OFFLINE");
-      setValue("obdStatus", "OBD OFF");
-      speak("O B D bridge is online, but the adapter is not connected.");
-    }
+    speak("Starting direct Bluetooth O B D connection.");
+    await connectVgateDirect();
   } catch (error) {
+    console.error(error);
+
     obdLive = false;
-    setValue("sourceStatus", "NO BRIDGE");
-    setValue("obdStatus", "NO BRIDGE");
-    speak("O B D bridge not detected. Start the Python server first.");
+    setValue("sourceStatus", "BLE FAIL");
+    setValue("obdStatus", "BLE FAIL");
+
+    speak("Bluetooth O B D connection failed.");
   }
 }
 
