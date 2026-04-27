@@ -749,3 +749,283 @@ body.security-mode .app::before {
   place-items: center !important;
   padding: 24px;
 }
+
+/* =========================================================
+   REVANTA OS v1 PREMIUM POLISH PATCH
+   Add this at the VERY BOTTOM of style.css
+========================================================= */
+
+:root {
+  --glass: rgba(4, 12, 22, 0.72);
+  --glass-strong: rgba(5, 15, 28, 0.9);
+  --line-soft: color-mix(in srgb, var(--accent) 32%, transparent);
+  --line-hot: color-mix(in srgb, var(--accent) 75%, transparent);
+  --shadow-core: 0 0 24px color-mix(in srgb, var(--accent) 24%, transparent);
+  --shadow-heavy: 0 0 60px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+body {
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+  background: #02040a;
+  text-rendering: geometricPrecision;
+}
+
+.app {
+  background:
+    radial-gradient(circle at 50% -10%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 38%),
+    radial-gradient(circle at 85% 20%, color-mix(in srgb, var(--accent2) 14%, transparent), transparent 30%),
+    linear-gradient(145deg, #02040a 0%, var(--bg) 48%, #010208 100%);
+}
+
+.app::before {
+  background:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(120deg, transparent 0%, color-mix(in srgb, var(--accent) 8%, transparent) 50%, transparent 100%);
+  background-size: 42px 42px, 42px 42px, 100% 100%;
+  opacity: 0.42;
+}
+
+.app::after {
+  opacity: 0.42;
+  filter: blur(10px);
+}
+
+/* BOOT SCREEN */
+.boot-screen:not(.hidden) {
+  background:
+    radial-gradient(circle at center, color-mix(in srgb, var(--accent) 20%, transparent), transparent 42%),
+    linear-gradient(180deg, #010208, var(--bg));
+}
+
+.boot-card {
+  width: 640px;
+  padding: 38px;
+  border-radius: 30px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.055), transparent),
+    var(--glass-strong);
+  border: 1px solid var(--line-hot);
+  box-shadow:
+    inset 0 0 32px rgba(255,255,255,0.035),
+    0 0 34px color-mix(in srgb, var(--accent) 48%, transparent),
+    0 0 95px color-mix(in srgb, var(--accent2) 24%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.brand-icon {
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 25%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
+    rgba(0,0,0,0.32);
+  text-shadow: 0 0 22px var(--accent);
+}
+
+.boot-card h1 {
+  font-size: clamp(42px, 6vw, 66px);
+  letter-spacing: 10px;
+  text-shadow: 0 0 24px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.boot-card p,
+.top-bar p {
+  text-transform: uppercase;
+}
+
+.boot-log {
+  border: 1px solid var(--line-soft);
+  background: rgba(0, 0, 0, 0.38);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.45);
+}
+
+/* DASHBOARD SHELL */
+.dashboard {
+  padding: 12px;
+  gap: 10px;
+}
+
+.top-bar {
+  min-height: 78px;
+  padding: 12px 16px;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.055), transparent),
+    var(--glass);
+  border: 1px solid var(--line-soft);
+  box-shadow: var(--shadow-core);
+  backdrop-filter: blur(14px);
+}
+
+.top-bar h1 {
+  font-size: clamp(24px, 3vw, 36px);
+  letter-spacing: 5px;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 65%, transparent);
+}
+
+.status-pill {
+  border-radius: 999px;
+  padding: 8px 12px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015));
+  box-shadow: inset 0 0 12px rgba(255,255,255,0.025);
+}
+
+/* GAUGES */
+.gauge,
+.performance-card,
+.media-panel,
+.copilot-box,
+.copilot-card,
+.mini-card,
+#settingsTab,
+#mediaTab,
+#performanceTab,
+#copilotTab,
+#commandTab {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015)),
+    var(--glass);
+  border: 1px solid var(--line-soft);
+  box-shadow:
+    inset 0 0 22px rgba(255,255,255,0.025),
+    var(--shadow-core);
+  backdrop-filter: blur(12px);
+}
+
+.gauge {
+  min-height: 98px;
+  padding: 12px;
+  border-radius: 20px;
+}
+
+.hero-gauge {
+  min-height: 128px;
+}
+
+.gauge span,
+.performance-card span,
+.mini-card span,
+.copilot-card span {
+  font-size: 11px;
+  letter-spacing: 2.8px;
+  opacity: 0.95;
+}
+
+.gauge strong {
+  font-size: clamp(32px, 4vw, 52px);
+  margin: 10px 0 3px;
+  text-shadow:
+    0 0 14px rgba(255,255,255,0.22),
+    0 0 26px color-mix(in srgb, var(--accent) 34%, transparent);
+}
+
+.small-gauge strong {
+  font-size: clamp(20px, 2.3vw, 30px);
+}
+
+.performance-card {
+  border-radius: 20px;
+  padding: 16px;
+}
+
+.performance-card strong {
+  font-size: clamp(24px, 3vw, 38px);
+}
+
+/* BUTTONS */
+button {
+  border-radius: 14px;
+  padding: 11px 12px;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 14%, transparent), rgba(0,0,0,0.25));
+  border: 1px solid var(--line-hot);
+  box-shadow:
+    inset 0 0 14px rgba(255,255,255,0.025),
+    0 0 14px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+button:hover {
+  transform: translateY(-2px);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 24%, transparent), rgba(0,0,0,0.2));
+  box-shadow:
+    0 0 22px color-mix(in srgb, var(--accent) 45%, transparent),
+    inset 0 0 18px rgba(255,255,255,0.04);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* GRIDS */
+.gauge-grid,
+.performance-grid,
+.quick-buttons,
+.mode-grid,
+.voice-grid,
+.theme-grid {
+  gap: 10px;
+}
+
+.quick-buttons,
+.mode-grid {
+  margin-top: 10px;
+}
+
+/* HEADINGS */
+h2 {
+  font-size: clamp(22px, 3vw, 34px);
+  letter-spacing: 4px;
+  text-shadow: 0 0 16px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+h3 {
+  letter-spacing: 2px;
+}
+
+/* NAV */
+.map-panel {
+  border-radius: 22px;
+  border: 1px solid var(--line-hot);
+  box-shadow: var(--shadow-heavy);
+}
+
+.nav-search input,
+.setup-grid input,
+.setup-grid select {
+  border-radius: 14px;
+  background: rgba(0, 10, 20, 0.78);
+  border: 1px solid var(--line-soft);
+  box-shadow: inset 0 0 14px rgba(0,0,0,0.35);
+}
+
+/* SETUP */
+.setup-card {
+  border-radius: 30px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.055), transparent),
+    var(--glass-strong);
+  backdrop-filter: blur(16px);
+}
+
+/* BOTTOM NAV */
+.bottom-nav button {
+  min-height: 44px;
+}
+
+/* TABLET LANDSCAPE POLISH */
+@media (min-width: 900px) {
+  .gauge-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .quick-buttons {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .bottom-nav {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
