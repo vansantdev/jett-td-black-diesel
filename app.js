@@ -1696,35 +1696,8 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("bootScreen").classList.remove("hidden");
     document.getElementById("dashboard").classList.add("hidden");
 
-    function applyVehicleProfile() {
-  const profile = getActiveProfile();
-
-  const appName = "REVANTA OS";
-  const vehicleName = profile.vehicleName || "Vehicle";
-  const commandName = profile.commandName || "Revanta Command";
-
-  document.querySelectorAll(".top-bar h1").forEach((el) => {
-    el.textContent = appName;
-  });
-
-  document.querySelectorAll(".boot-card h1").forEach((el) => {
-    el.textContent = appName;
-  });
-
-  document.querySelectorAll(".boot-card p").forEach((el) => {
-    el.textContent = "VEHICLE COMMAND PLATFORM";
-  });
-
-  setValue("pageTitle", `${commandName} • ${vehicleName}`);
-
-  document.title = `Revanta OS • ${vehicleName}`;
-
-  if (profile.theme) {
-    currentThemeMode = profile.theme;
-    localStorage.setItem("jettThemeMode", profile.theme);
-    applyTheme();
+    applyVehicleProfile();
   }
-}
 
   updateVoiceLabel();
   applyTheme();
