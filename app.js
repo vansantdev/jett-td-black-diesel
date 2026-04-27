@@ -1010,13 +1010,6 @@ async function readBleLiveOnce() {
   }
 }
 
-function startBlePolling() {
-  if (obdTimer) clearInterval(obdTimer);
-
-  obdTimer = setInterval(readBleLiveOnce, 1000);
-  readBleLiveOnce();
-}
-
 let obdBleDevice = null;
 let obdBleServer = null;
 let obdBleWriteChar = null;
@@ -1043,23 +1036,27 @@ const OBD_NOTIFY_CANDIDATES = [
 ];
 
 async function connectOBD() {
-  setValue("sourceStatus", "OBD SEARCH");
-  setValue("obdStatus", "SEARCHING");
-  speak("Searching for O B D adapter.");
-
-  if (navigator.bluetooth) {
-    try {
-      await connectOBDBluetoothDirect();
-      return;
-    } catch (error) {
-      console.warn("BLE OBD failed:", error);
-      setValue("sourceStatus", "BLE FAILED");
-      setValue("obdStatus", "TRY BRIDGE");
-      speak("Bluetooth direct connection failed. Trying local bridge.");
-    }
+  if (!navigator.bluetooth) {
+    speak("Bluetooth is not available in this browser. Use Chrome on Android.");
+    setValue("sourceStatus", "NO BLE");
+    setValue("obdStatus", "NO BLE");
+    return;
   }
 
-  await connectOBDBridge();
+  try {
+    setValue("sourceStatus", "BLE SEARCH");
+    setValue("obdStatus", "SEARCHING");
+    speak("Searching for O B D adapter.");
+
+    await connectOBDBluetoothDirect();
+  } catch (error) {
+    console.error("OBD BLE failed:", error);
+    obdLive = false;
+    obdMode = "none";
+    setValue("sourceStatus", "BLE FAILED");
+    setValue("obdStatus", "FAILED");
+    speak(error.message || "O B D Bluetooth connection failed.");
+  }
 }
 
 async function connectOBDBluetoothDirect() {
@@ -1067,6 +1064,8 @@ async function connectOBDBluetoothDirect() {
     filters: [
       { namePrefix: "vLinker" },
       { namePrefix: "V-LINK" },
+      { namePrefix: "Vgate" },
+      { namePrefix: "VGATE" },
       { namePrefix: "OBD" },
       { namePrefix: "OBDII" },
       { namePrefix: "ELM" }
@@ -1074,13 +1073,7 @@ async function connectOBDBluetoothDirect() {
     optionalServices: OBD_SERVICE_CANDIDATES
   });
 
-  obdBleDevice.addEventListener("gattserverdisconnected", () => {
-    obdLive = false;
-    obdMode = "none";
-    setValue("sourceStatus", "BLE LOST");
-    setValue("obdStatus", "DISCONNECTED");
-    speak("O B D Bluetooth disconnected.");
-  });
+  obdBleDevice.addEventListener("gattserverdisconnected", onOBDBleDisconnected);
 
   setValue("sourceStatus", "BLE DEVICE");
   setValue("obdStatus", "OPENING");
@@ -1092,23 +1085,25 @@ async function connectOBDBluetoothDirect() {
   obdBleWriteChar = channel.write;
   obdBleNotifyChar = channel.notify;
 
+  obdBleBuffer = "";
+
   await obdBleNotifyChar.startNotifications();
   obdBleNotifyChar.addEventListener("characteristicvaluechanged", handleOBDNotification);
 
   setValue("sourceStatus", "BLE INIT");
   setValue("obdStatus", "INIT ECU");
 
-  await elmCommand("ATZ", 1200);
-  await elmCommand("ATE0", 400);
-  await elmCommand("ATL0", 400);
-  await elmCommand("ATS0", 400);
-  await elmCommand("ATH0", 400);
-  await elmCommand("ATSP0", 800);
+  await elmCommand("ATZ", 1400);
+  await elmCommand("ATE0", 500);
+  await elmCommand("ATL0", 500);
+  await elmCommand("ATS0", 500);
+  await elmCommand("ATH0", 500);
+  await elmCommand("ATSP0", 1000);
 
-  const test = await elmCommand("010C", 1000);
+  const test = await elmCommand("010C", 1400);
 
-  if (!test || test.includes("NO DATA") || test.includes("?")) {
-    throw new Error("ECU did not respond to RPM PID.");
+  if (!test || test.includes("NO DATA") || test.includes("?") || test.includes("UNABLE")) {
+    throw new Error("Adapter connected, but ECU did not respond to RPM.");
   }
 
   obdLive = true;
@@ -1118,7 +1113,7 @@ async function connectOBDBluetoothDirect() {
   setValue("obdStatus", "OBD BLE");
   speak("V Linker Bluetooth data connected.");
 
-  startOBDPolling();
+  startBlePolling();
 }
 
 async function findOBDDataChannel(server) {
@@ -1159,9 +1154,7 @@ async function findOBDDataChannel(server) {
 }
 
 function handleOBDNotification(event) {
-  const value = event.target.value;
-  const text = new TextDecoder().decode(value);
-
+  const text = new TextDecoder().decode(event.target.value);
   obdBleBuffer += text;
 }
 
@@ -1175,6 +1168,138 @@ async function writeOBD(text) {
   } else {
     await obdBleWriteChar.writeValue(data);
   }
+}
+
+async function elmCommand(command, waitMs = 500) {
+  obdBleBuffer = "";
+  await writeOBD(command);
+  await new Promise(resolve => setTimeout(resolve, waitMs));
+
+  return obdBleBuffer
+    .replace(/\r/g, "")
+    .replace(/\n/g, "")
+    .replace(/>/g, "")
+    .trim()
+    .toUpperCase();
+}
+
+function parsePid(response, pid) {
+  const clean = response.replace(/\s/g, "").toUpperCase();
+  const index = clean.indexOf("41" + pid);
+
+  if (index === -1) return null;
+
+  const data = clean.substring(index + 4);
+
+  if (pid === "0C") {
+    const A = parseInt(data.substring(0, 2), 16);
+    const B = parseInt(data.substring(2, 4), 16);
+    return Math.round(((A * 256) + B) / 4);
+  }
+
+  if (pid === "0D") {
+    const A = parseInt(data.substring(0, 2), 16);
+    return Math.round(A * 0.621371);
+  }
+
+  if (pid === "05") {
+    const A = parseInt(data.substring(0, 2), 16);
+    return Math.round((A - 40) * 9 / 5 + 32);
+  }
+
+  if (pid === "0F") {
+    const A = parseInt(data.substring(0, 2), 16);
+    return Math.round((A - 40) * 9 / 5 + 32);
+  }
+
+  if (pid === "42") {
+    const A = parseInt(data.substring(0, 2), 16);
+    const B = parseInt(data.substring(2, 4), 16);
+    return ((A * 256) + B) / 1000;
+  }
+
+  return null;
+}
+
+function startBlePolling() {
+  if (obdTimer) clearInterval(obdTimer);
+
+  obdTimer = setInterval(readBleLiveOnce, 1200);
+  readBleLiveOnce();
+}
+
+async function readBleLiveOnce() {
+  if (obdMode !== "ble") return;
+
+  try {
+    const rpmRaw = await elmCommand("010C", 700);
+    const speedRaw = await elmCommand("010D", 700);
+    const coolantRaw = await elmCommand("0105", 700);
+    const intakeRaw = await elmCommand("010F", 700);
+    const voltageRaw = await elmCommand("0142", 700);
+
+    const rpm = parsePid(rpmRaw, "0C");
+    const speed = parsePid(speedRaw, "0D");
+    const coolant = parsePid(coolantRaw, "05");
+    const intake = parsePid(intakeRaw, "0F");
+    const voltage = parsePid(voltageRaw, "42");
+
+    if (rpm !== null) setValue("rpmValue", rpm);
+    if (speed !== null) setValue("speedValue", speed);
+    if (coolant !== null) setValue("coolantValue", coolant);
+    if (intake !== null) setValue("intakeValue", `${intake} °F`);
+    if (voltage !== null) setValue("batteryValue", `${voltage.toFixed(1)} V`);
+
+    const currentSpeed = Number(getText("speedValue", "0"));
+    const currentRpm = Number(getText("rpmValue", "0"));
+    const currentBoost = Number(getText("boostValue", "0"));
+    const currentCoolant = Number(getText("coolantValue", "0"));
+
+    setValue("sourceStatus", "OBD BLE");
+    setValue("obdStatus", "LIVE");
+
+    updateSpeedStats(currentSpeed);
+    checkDrivingAlerts(currentSpeed, currentRpm, currentBoost, currentCoolant);
+    if (voltage !== null) checkBatteryAlert(voltage);
+    syncNavGauges();
+    updateHeaderBadges();
+  } catch (error) {
+    console.error("BLE read failed:", error);
+    setValue("obdStatus", "READ ERR");
+  }
+}
+
+async function disconnectOBD() {
+  obdLive = false;
+  obdMode = "none";
+
+  if (obdTimer) {
+    clearInterval(obdTimer);
+    obdTimer = null;
+  }
+
+  try {
+    if (obdBleDevice?.gatt?.connected) {
+      obdBleDevice.gatt.disconnect();
+    }
+  } catch (error) {}
+
+  setValue("sourceStatus", "DISCONNECTED");
+  setValue("obdStatus", "OBD OFF");
+  speak("O B D disconnected.");
+}
+
+function onOBDBleDisconnected() {
+  obdLive = false;
+  obdMode = "none";
+
+  if (obdTimer) {
+    clearInterval(obdTimer);
+    obdTimer = null;
+  }
+
+  setValue("sourceStatus", "BLE LOST");
+  setValue("obdStatus", "DISCONNECTED");
 }
 
 async function elmCommand(command, waitMs = 600) {
