@@ -3616,7 +3616,7 @@ function renderPullHistory() {
     const date = new Date(pull.timestamp).toLocaleString();
 
     return `
-      <div class="pull-card">
+      <div class="pull-card" onclick="openPullReplay(${index})">
         <strong>Pull #${index + 1}</strong>
         <p>${date}</p>
         <p>Peak Boost: ${pull.peakBoost ?? 0} PSI</p>
@@ -3625,6 +3625,70 @@ function renderPullHistory() {
       </div>
     `;
   }).join("");
+}
+
+function openPullReplay(index) {
+  const pulls = JSON.parse(
+    localStorage.getItem("revantaPulls") || "[]"
+  );
+
+  const pull = pulls[index];
+
+  if (!pull) return;
+
+  $("pullReplayPanel")?.classList.remove("hidden");
+
+  setValue("replayBoost", `${pull.peakBoost ?? 0} PSI`);
+  setValue("replayRpm", `${pull.maxRpm ?? 0} RPM`);
+  setValue("replaySpeed", `${pull.topSpeed ?? 0} MPH`);
+
+  drawReplayGraph(pull.graph || []);
+}
+
+window.openPullReplay = openPullReplay;
+window.renderPullHistory = renderPullHistory;
+
+function drawReplayGraph(data) {
+
+  const canvas = $("replayGraph");
+
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = canvas.offsetWidth;
+  canvas.height = 140;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (!data.length) return;
+
+  const rpmValues = data
+    .map(p => p.rpm || 0);
+
+  const maxRpm = Math.max(...rpmValues, 1);
+
+  ctx.beginPath();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#00e5ff";
+
+  rpmValues.forEach((rpm, i) => {
+
+    const x =
+      (i / (rpmValues.length - 1)) * canvas.width;
+
+    const y =
+      canvas.height -
+      (rpm / maxRpm) * canvas.height;
+
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+
+  ctx.stroke();
 }
 
 function renderLiveGraphs() {

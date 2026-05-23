@@ -386,6 +386,31 @@
     No saved pulls yet.
   </div>
 
+  <div id="pullReplayPanel" class="pull-replay-panel hidden">
+
+  <h3>PULL REPLAY</h3>
+
+  <div class="pull-stat-grid">
+    <div class="pull-stat">
+      <span>Peak Boost</span>
+      <strong id="replayBoost">0 PSI</strong>
+    </div>
+
+    <div class="pull-stat">
+      <span>Max RPM</span>
+      <strong id="replayRpm">0 RPM</strong>
+    </div>
+
+    <div class="pull-stat">
+      <span>Top Speed</span>
+      <strong id="replaySpeed">0 MPH</strong>
+    </div>
+  </div>
+
+  <canvas id="replayGraph" height="140"></canvas>
+
+</div>
+
   <button onclick="renderPullHistory()">
     REFRESH HISTORY
   </button>
