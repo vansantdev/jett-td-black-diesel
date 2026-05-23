@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Revanta OS</title>
+  <link rel="stylesheet" href="style.css?v=revanta-v13" />
+  <link rel="manifest" href="manifest.json?v=9" />
+  <meta name="theme-color" content="#00eaff" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Revanta OS" />
+</head>
+
+<body class="theme-legacy">
+  <main class="app">
+
+    <div id="bootScreen" class="boot-screen">
+  <img
+    id="bootVehicleImage"
+    class="boot-vehicle-image"
+    src="assets/profiles/universal/boot.jpg?v=99"
+    alt="Revanta vehicle boot"
+  />
+
+  <button
+    id="bootStartBtn"
+    class="boot-overlay-start"
+    onclick="startSystem()"
+  >
+    START SYSTEM
+  </button>
+</div>
+
+    <section id="setupScreen" class="setup-screen hidden">
+      <div class="setup-card">
+        <h1>Revanta OS</h1>
+        <p>Configure Revanta OS for this vehicle.</p>
+
+        <div class="setup-grid">
+          <input id="setupOwner" placeholder="Owner name ex: Danker" />
+          <input id="setupVehicleName" placeholder="Vehicle name ex: JETT TD" />
+          <input id="setupMake" placeholder="Make ex: Volkswagen" />
+          <input id="setupModel" placeholder="Model ex: Jetta" />
+          <input id="setupYear" placeholder="Year ex: 2006" />
+          <input id="setupEngine" placeholder="Engine ex: 1.9 TDI BRM" />
+
+          <select id="setupFuel">
+            <option value="Diesel">Diesel</option>
+            <option value="Gas">Gas</option>
+            <option value="Hybrid">Hybrid</option>
+            <option value="EV">EV</option>
+          </select>
+
+          <select id="setupTheme">
+            <option value="legacy">Color Shift Legacy</option>
+            <option value="germanBlue">OEM German Blue</option>
+            <option value="dieselAmber">Diesel Amber</option>
+            <option value="performanceRed">Performance Red</option>
+            <option value="stealth">Stealth Tactical</option>
+            <option value="iceWhite">Ice White</option>
+          </select>
+
+          <input id="setupCommandName" placeholder="Command name ex: Black Diesel Command" />
+        </div>
+
+        <div class="setup-actions">
+          <button onclick="saveSetupProfile()">SAVE PROFILE</button>
+          <button onclick="skipSetup()">SKIP FOR NOW</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="dashboard" class="dashboard">
+
+  <div id="drivingHud" class="driving-hud hidden">
+
+    <div class="hud-speed">
+      <span>MPH</span>
+      <strong id="hudSpeed">0</strong>
+    </div>
+
+    <div class="hud-row">
+      <div class="hud-box">
+        <label>RPM</label>
+        <strong id="hudRpm">0</strong>
+      </div>
+
+      <div class="hud-box">
+        <label>BOOST</label>
+        <strong id="hudBoost">0.0 PSI</strong>
+      </div>
+
+      <div class="hud-box">
+        <label>COOLANT</label>
+        <strong id="hudCoolant">--</strong>
+      </div>
+    </div>
+
+    <div class="hud-nav">
+      <div id="hudNavStatus">NAV READY</div>
+      <div id="hudWeather">WEATHER READY</div>
+    </div>
+
+  </div>
+
+  <header class="top-bar compact-top">
+
+  <div class="vehicle-title">
+    <h1>REVANTA OS</h1>
+    <p id="pageTitle">VEHICLE COMMAND PLATFORM</p>
+  </div>
+
+  <div class="status-pill-group">
+    <span id="sourceStatus" class="status-pill">LIVE READY</span>
+    <span id="obdStatus" class="status-pill">STANDBY</span>
+    <span id="gpsHeaderStatus" class="status-pill">GPS STANDBY</span>
+    <span id="weatherHeaderStatus" class="status-pill">WEATHER READY</span>
+    <span id="batteryHeaderStatus" class="status-pill">BATTERY -- V</span>
+    <span id="wakeStatusTop" class="status-pill">WAKE OFF</span>
+  </div>
+</header>
+
+      <section id="dashTab" class="tab active">
+  <div class="drive-layout">
+
+  <!-- CENTER DRIVE HUD -->
+  <div class="drive-center">
+
+    <div class="gauge-grid">
+
+      <div class="gauge hero-gauge glow">
+        <span>⚡ SPEED</span>
+        <strong id="speedValue">0</strong>
+        <small>MPH</small>
+      </div>
+
+      <div class="gauge hero-gauge glow">
+        <span>⏱ RPM</span>
+        <strong id="rpmValue">--</strong>
+        <small>RPM</small>
+      </div>
+
+      <div
+        class="gauge hero-gauge glow"
+        id="boostGauge"
+      >
+        <span>🌀 BOOST</span>
+        <strong id="boostValue">0.0</strong>
+        <small>PSI</small>
+      </div>
+
+      <div
+        class="gauge hero-gauge glow"
+        id="coolantGauge"
+      >
+        <span>🌡 COOLANT</span>
+        <strong id="coolantValue">--</strong>
+        <small>°F</small>
+      </div>
+
+      <div class="gauge small-gauge">
+        <span>🔋 BATTERY</span>
+        <strong id="batteryValue">-- V</strong>
+        <small>VOLTAGE</small>
+      </div>
+
+      <div
+        class="gauge small-gauge"
+        id="mafGauge"
+      >
+        <span>🌬 MAF</span>
+        <strong id="mafValue">--</strong>
+        <small>g/s</small>
+      </div>
+
+      <div
+        class="gauge small-gauge"
+        id="intakeGauge"
+      >
+        <span>🌬 INTAKE</span>
+        <strong id="intakeValue">-- °F</strong>
+        <small>IAT</small>
+      </div>
+
+      <div
+        class="gauge small-gauge"
+        id="fuelGauge"
+      >
+        <span>⛽ FUEL</span>
+        <strong id="fuelValue">--</strong>
+        <small>STATUS</small>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- RIGHT TACTICAL STACK -->
+  <div class="drive-right">
+
+    <div class="command-panel">
+      <h3>NAVIGATION</h3>
+
+      <div class="mini-nav-box">
+        <div id="navMapEmbed" class="map-frame">
+          Navigation Ready
+        </div>
+      </div>
+    </div>
+
+    <div class="command-panel">
+      <h3>WEATHER RADAR</h3>
+
+      <div class="mini-weather">
+        <strong id="weatherTemp">--°</strong>
+        <span id="weatherCondition">Standby</span>
+      </div>
+    </div>
+
+    <div class="command-panel">
+      <h3>COPILOT</h3>
+
+      <div class="copilot-mini">
+        <span id="copilotStatus">
+          Tactical systems standing by.
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="quick-buttons">
+  <button onclick="connectOBD()">CONNECT</button>
+  <button onclick="disconnectOBD()">DISCONNECT</button>
+  <button onclick="startGpsSpeed()">GPS</button>
+  <button onclick="weatherLayer()">WEATHER</button>
+</div>
+</section>
+
+      <section id="performanceTab" class="tab">
+
+  <div class="card-grid">
+
+    <div class="performance-grid">
+
+  <div class="performance-card hero-performance">
+    <span>0-60</span>
+    <strong id="zeroSixtyTime">READY</strong>
+    <small id="zeroSixtyStatus">Waiting</small>
+  </div>
+
+  <div class="performance-card wide-performance">
+    <span>PEAK BOOST</span>
+    <strong id="peakBoost">0.0 PSI</strong>
+    <small>Session peak</small>
+  </div>
+
+  <div class="performance-card">
+    <span>MAX RPM</span>
+    <strong id="maxRpm">0 RPM</strong>
+    <small>Session max</small>
+  </div>
+
+  <div class="performance-card">
+    <span>TOP SPEED</span>
+    <strong id="perfTopSpeed">0 MPH</strong>
+    <small>Session max</small>
+  </div>
+
+</div>
+
+    <div class="card glow">
+      <h3>PERFORMANCE CONTROLS</h3>
+
+      <button class="big-btn" id="startZeroSixtyBtn">
+        START 0-60
+      </button>
+
+      <button class="big-btn" id="resetZeroSixtyBtn">
+        RESET 0-60
+      </button>
+
+      <button class="big-btn" id="spoolModeBtn">
+        SPOOL MODE
+      </button>
+
+      <button onclick="savePullSnapshot()">
+        SAVE PULL
+      </button>
+    </div>
+
+    <div class="card glow">
+      <h3>LIVE PERFORMANCE</h3>
+
+      <div class="graph-wrap">
+        <label>RPM GRAPH</label>
+        <canvas id="rpmGraph" width="320" height="45"></canvas>
+      </div>
+
+      <div class="graph-wrap">
+        <label>BOOST GRAPH</label>
+        <canvas id="boostGraph" width="320" height="45"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+      <section id="diagnosticsTab" class="tab">
+  <h2>DIAGNOSTICS</h2>
+
+  <div class="diagnostics-grid">
+    <div class="diagnostic-card">
+      <span>CHECK ENGINE</span>
+      <strong id="celStatus">UNKNOWN</strong>
+      <small id="celNote">Connect OBD and scan.</small>
+    </div>
+
+    <div class="diagnostic-card">
+      <span>OBD LINK</span>
+      <strong id="diagObdStatus">STANDBY</strong>
+      <small id="diagObdNote">Waiting for adapter.</small>
+    </div>
+
+    <div class="diagnostic-card">
+      <span>STORED CODES</span>
+      <strong id="storedCodeCount">--</strong>
+      <small id="storedCodeNote">No scan yet.</small>
+    </div>
+
+    <div class="diagnostic-card">
+      <span>LAST SCAN</span>
+      <strong id="lastScanTime">NEVER</strong>
+      <small id="lastScanNote">Ready.</small>
+    </div>
+  </div>
+
+  <div class="mode-grid diagnostics-actions">
+    <button onclick="scanCodes()">SCAN CODES</button>
+    <button onclick="clearCodes()">CLEAR CODES</button>
+    <button onclick="showAbsHelp()">ABS HELP</button>
+    <button onclick="saveCodeHistory()">SAVE HISTORY</button>
+    <button onclick="clearCodeHistory()">CLEAR HISTORY</button>
+  </div>
+
+  <div class="copilot-box diagnostics-box">
+    <h3>Code Results</h3>
+    <div id="diagnosticResults" class="diagnostic-results">
+      <div class="diagnostic-empty">No diagnostic scan yet.</div>
+    </div>
+  </div>
+
+  <div class="copilot-box diagnostics-box">
+    <h3>Raw ECU Response</h3>
+    <p id="rawDtcOutput">Waiting for scan.</p>
+  </div>
+
+  <div class="copilot-box diagnostics-box">
+    <h3>Code History</h3>
+    <p id="codeHistoryOutput">No saved history yet.</p>
+  </div>
+</section>
+
+<section id="upgradeTab" class="tab">
+
+  <div class="card glow">
+    <h2>REVANTA PLUS</h2>
+
+    <p>
+      Pull history, graph playback,
+      advanced copilot, extended history.
+    </p>
+
+    <button onclick="setRevantaPlan('plus')">
+      UNLOCK PLUS TEST
+    </button>
+  </div>
+
+  <div class="card glow">
+  <h2>PULL HISTORY</h2>
+
+  <div id="pullHistoryList">
+    No saved pulls yet.
+  </div>
+
+  <button onclick="renderPullHistory()">
+    REFRESH HISTORY
+  </button>
+</div>
+
+  <div class="card glow">
+    <h2>REVANTA PRO</h2>
+
+    <p>
+      Garage profiles, exports,
+      advanced diagnostics,
+      custom vehicle systems.
+    </p>
+
+    <button onclick="setRevantaPlan('pro')">
+      UNLOCK PRO TEST
+    </button>
+  </div>
+
+</section>
+
+      <section id="commandTab" class="tab">
+        <h2>SYSTEM CONTROL</h2>
+
+        <div class="command-panel">
+
+        <div class="mode-grid">
+          <button onclick="listenCommand()">TALK</button>
+          <button onclick="goFullscreen()">FULLSCREEN</button>
+        </div>
+
+          <div class="mode-grid">
+            <button onclick="volumeUp()">VOICE +</button>
+            <button onclick="volumeDown()">VOICE -</button>
+            <button onclick="muteVoice()">MUTE VOICE</button>
+            <button onclick="unmuteVoice()">UNMUTE</button>
+          </div>
+
+          <div class="mode-grid">
+            <button onclick="toggleAlerts()">TOGGLE ALERTS</button>
+          </div>
+
+          <div class="mode-grid">
+            <button onclick="factoryReset()">FACTORY RESET</button>
+          </div>
+
+          <div class="copilot-box">
+            <h3>SYSTEM STATUS</h3>
+            <p id="commandLog">Revanta command systems standing by.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="copilotTab" class="tab">
+        <h2>COPILOT</h2>
+
+        <div class="mode-grid">
+          <button onclick="copilotReport()">RUN SYSTEM REPORT</button>
+        </div>
+
+        <div class="copilot-grid">
+          <div class="copilot-card">
+            <span>ENGINE HEALTH</span>
+            <strong id="engineHealthStatus">STABLE</strong>
+            <small id="engineHealthNote">Coolant and RPM normal.</small>
+          </div>
+
+          <div class="copilot-card">
+            <span>TURBO STATUS</span>
+            <strong id="turboHealthStatus">READY</strong>
+            <small id="turboHealthNote">Boost monitor standing by.</small>
+          </div>
+
+          <div class="copilot-card">
+            <span>POWER STATUS</span>
+            <strong id="powerHealthStatus">UNKNOWN</strong>
+            <small id="powerHealthNote">Waiting for battery voltage.</small>
+          </div>
+
+          <div class="copilot-card">
+            <span>DRIVE STATUS</span>
+            <strong id="driveHealthStatus">READY</strong>
+            <small id="driveHealthNote">No active warnings.</small>
+          </div>
+        </div>
+
+        <div class="copilot-box">
+          <h3>Copilot Output</h3>
+          <p id="copilotOutput">Standing by.</p>
+        </div>
+      </section>
+
+      <section id="navTab" class="tab">
+        <div class="nav-header-row">
+          <h2>NAVIGATION</h2>
+
+          <div class="nav-search">
+            <input id="navSearchInput" type="text" placeholder="Enter destination..." />
+            <button onclick="loadDestination()">LOAD</button>
+            <button onclick="openFullGoogleMaps()">OPEN MAPS</button>
+            <button onclick="goHomeNav()">HOME</button>
+          </div>
+        </div>
+
+        <div class="nav-layout">
+          <div class="map-panel">
+            <iframe
+              id="mapFrame"
+              src="https://www.google.com/maps?q=current+location&output=embed"
+              allowfullscreen
+              loading="lazy">
+            </iframe>
+          </div>
+
+          <div class="nav-direction-panel">
+  <div class="nav-direction-header">
+    <span>NAVIGATION</span>
+    <strong id="navDirectionStatus">STANDBY</strong>
+  </div>
+
+  <div class="nav-next-turn">
+    <label>NEXT ACTION</label>
+    <strong id="navNextTurn">Awaiting route</strong>
+  </div>
+
+  <div class="nav-eta-row">
+    <div class="nav-mini-card">
+      <span>ETA</span>
+      <strong id="navEta">--</strong>
+    </div>
+
+    <div class="nav-mini-card">
+      <span>DISTANCE</span>
+      <strong id="navDistance">--</strong>
+    </div>
+  </div>
+</div>
+
+          <div class="nav-gauges">
+            <div class="mini-card">
+              <span>SPEED</span>
+              <strong id="navSpeed">0 MPH</strong>
+            </div>
+
+            <div class="mini-card">
+              <span>RPM</span>
+              <strong id="navRpm">--</strong>
+            </div>
+
+            <div class="mini-card">
+              <span>BOOST</span>
+              <strong id="navBoost">0.0 PSI</strong>
+            </div>
+
+            <div class="mini-card">
+              <span>INTAKE</span>
+              <strong id="navIntake">-- °F</strong>
+            </div>
+
+            <div class="mini-card">
+              <span>WEATHER</span>
+              <strong id="navWeather">READY</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="settingsTab" class="tab">
+        <h2>VEHICLE PROFILE</h2>
+
+        <div class="status-grid">
+          <div class="status-card">
+            <span>DETECTED VEHICLE</span>
+            <strong id="vehicleProfileName">Unknown Vehicle</strong>
+            <p id="vehicleProfileType">Waiting for scan.</p>
+        </div>
+
+        <div class="status-card">
+          <span>INDUCTION</span>
+          <strong id="vehicleProfileTurbo">UNKNOWN</strong>
+          <p id="vehicleProfileSupported">No capability data yet.</p>
+          <p id="vehicleProfileVin">VIN: Not scanned yet.</p>
+          <p id="vehicleProfileLastSeen">Last Seen: Never</p>
+          <p id="vehicleProfileQuality">Connection: Waiting</p>
+          <p id="vehicleProfilePollRate">Poll Rate: --</p>
+          <p id="vehicleProfileLatency">ECU Latency: --</p>
+          <button class="big-btn" onclick="manualVinScan()">
+            SCAN VIN
+          </button>
+        </div>
+      </div>
+
+        <input
+          id="vehicleNameInput"
+          class="text-input"
+          placeholder="Name this vehicle"
+        />
+
+        <button class="big-btn" onclick="saveVehicleName()">
+          SAVE VEHICLE NAME
+        </button>
+
+        <button class="big-btn" onclick="toggleLiveDebugPanel()">
+          TOGGLE LIVE DEBUG
+        </button>
+
+        <h3>GARAGE</h3>
+
+        <div id="garageList" class="garage-list">
+          <p>No saved vehicles yet.</p>
+        </div>
+
+        <button class="big-btn" onclick="saveCurrentVehicleToGarage()">
+          SAVE TO GARAGE
+        </button>
+
+        <h2>VOICE SETTINGS</h2>
+        <p id="currentVoiceLabel">Current Voice: Deep Command</p>
+
+        <div class="voice-grid">
+          <button onclick="setVoiceMode('male')">Male</button>
+          <button onclick="setVoiceMode('female')">Female</button>
+          <button onclick="setVoiceMode('robot')">Robot</button>
+          <button onclick="setVoiceMode('deepCommand')">Deep Command</button>
+          <button onclick="setVoiceMode('sarcastic')">Funny / Sarcastic</button>
+          <button onclick="setVoiceMode('mechanic')">Mechanic Mode</button>
+          <button onclick="setVoiceMode('butler')">Butler Mode</button>
+          <button onclick="setVoiceMode('drill')">Diesel Drill Sergeant</button>
+          <button onclick="setVoiceMode('race')">Race Mode</button>
+          <button onclick="setVoiceMode('sport')">Sport Mode</button>
+        </div>
+
+        <h2>THEME MODES</h2>
+        <p id="currentThemeLabel">Current Theme: Color Shift Legacy</p>
+
+        <div class="theme-grid">
+          <button onclick="setThemeMode('legacy')">Color Shift Legacy</button>
+          <button onclick="setThemeMode('germanBlue')">OEM German Blue</button>
+          <button onclick="setThemeMode('dieselAmber')">Diesel Amber</button>
+          <button onclick="setThemeMode('performanceRed')">Performance Red</button>
+          <button onclick="setThemeMode('stealth')">Stealth Tactical</button>
+          <button onclick="setThemeMode('iceWhite')">Ice White</button>
+        </div>
+
+        <h2>SYSTEM</h2>
+
+        <div class="theme-grid">
+          <button onclick="toggleAlerts()">TOGGLE ALERTS</button>
+          <button onclick="toggleAutoTheme()">AUTO THEME</button>
+          <button onclick="startWakeWord()">HEY JETT ON</button>
+          <button onclick="stopWakeWord()">HEY JETT OFF</button>
+        </div>
+
+        <div class="settings-status">
+          <p id="alertStatus" class="note">Driving Alerts: Enabled</p>
+          <p id="autoThemeStatus" class="note">Auto Theme: Disabled</p>
+          <p id="wakeStatus" class="note">Wake Word: Off</p>
+          <p id="showModeStatus" class="note">Show Mode: Off</p>
+        </div>
+      </section>
+      
+      <div id="commandModal" class="command-modal hidden">
+        <div class="command-modal-card">
+          <h2>REVANTA COMMAND</h2>
+
+          <input
+            id="commandInput"
+            type="text"
+            placeholder="Type command..."
+            autocomplete="off"
+          />
+
+          <div class="command-modal-buttons">
+            <button onclick="submitCommandModal()">EXECUTE</button>
+            <button onclick="closeCommandModal()">CANCEL</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="command-log-card hidden" id="liveDebugPanel">
+        <h3>LIVE DEBUG</h3>
+        <pre id="liveDebug">Waiting for ECU data...</pre>
+      </div>
+
+      <nav class="bottom-nav">
+        <button onclick="showTab('dash')">DASH</button>
+        <button onclick="showTab('performance')">PERF</button>
+        <button onclick="showTab('diagnostics')">DIAG</button>
+        <button onclick="showTab('command')">SYSTEM</button>
+        <button onclick="showTab('copilot')">COPILOT</button>
+        <button onclick="showTab('nav')">NAV</button>
+        <button onclick="showTab('upgrade')">UPGRADE</button>
+        <button onclick="showTab('settings')">SETTINGS</button>
+      </nav>
+
+    </section>
+  </main>
+
+  <script src="js/dtc-database.js?v=13"></script>
+  <!--<script src="js/dtc-intelligence.js?v=13"></script>-->
+  <script src="app.js?v=14"></script>
+</body>
+</html>

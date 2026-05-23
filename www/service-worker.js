@@ -1,5 +1,4 @@
-const CACHE_NAME = "revanta-os-v8";
-
+const CACHE_NAME = "revanta-os-v12";
 const FILES_TO_CACHE = [
   "./",
   "./index.html",
