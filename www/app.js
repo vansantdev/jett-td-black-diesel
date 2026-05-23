@@ -3607,14 +3607,83 @@ function renderPullHistory() {
 
   const pulls = JSON.parse(localStorage.getItem("revantaPulls") || "[]");
 
+  const totalPulls = pulls.length;
+
+  const bestBoost = Math.max(
+    ...pulls.map(p => p.peakBoost || 0),
+    0
+  );
+
+  const bestRpm = Math.max(
+    ...pulls.map(p => p.maxRpm || 0),
+    0
+  );
+
+  const bestSpeed = Math.max(
+    ...pulls.map(p => p.topSpeed || 0),
+    0
+  );
+
+  const avgBoost =
+    pulls.reduce((sum, p) => sum + (p.peakBoost || 0), 0) /
+    (totalPulls || 1);
+
+  const avgRpm =
+    pulls.reduce((sum, p) => sum + (p.maxRpm || 0), 0) /
+    (totalPulls || 1);
+
+  const lastPull =
+    pulls[0]
+    ? new Date(pulls[0].timestamp).toLocaleString()
+    : "No pulls yet";
+
   if (!pulls.length) {
     box.innerHTML = "No saved pulls yet.";
     return;
   }
 
-  const bestBoost = Math.max(...pulls.map(p => p.peakBoost || 0));
+  const analytics = `
+  <div class="pull-analytics">
+    <div class="pull-stat">
+      <span>Total Pulls</span>
+      <strong>${totalPulls}</strong>
+    </div>
 
-  box.innerHTML = pulls.map((pull, index) => {
+    <div class="pull-stat">
+      <span>Best Boost</span>
+      <strong>${bestBoost.toFixed(1)} PSI</strong>
+    </div>
+
+    <div class="pull-stat">
+      <span>Best RPM</span>
+      <strong>${bestRpm} RPM</strong>
+    </div>
+
+    <div class="pull-stat">
+      <span>Top Speed</span>
+      <strong>${bestSpeed} MPH</strong>
+    </div>
+
+    <div class="pull-stat">
+      <span>Avg Boost</span>
+      <strong>${avgBoost.toFixed(1)} PSI</strong>
+    </div>
+
+    <div class="pull-stat">
+      <span>Avg RPM</span>
+      <strong>${Math.round(avgRpm)} RPM</strong>
+    </div>
+
+    <div class="pull-stat">
+      <span>Last Pull</span>
+      <strong>${lastPull}</strong>
+    </div>
+  </div>
+`;
+
+  box.innerHTML =
+    analytics +
+    pulls.map((pull, index) => {
     const date = new Date(pull.timestamp).toLocaleString();
 
     return `

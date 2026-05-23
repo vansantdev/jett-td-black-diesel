@@ -2256,3 +2256,30 @@ body.drive-mode .driving-hud {
   min-height: 32px;
   font-size: 0.65rem;
 }
+
+.pull-analytics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.pull-stat {
+  background: rgba(0, 8, 20, 0.75);
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  border-radius: 14px;
+  padding: 10px;
+  text-align: center;
+}
+
+.pull-stat span {
+  display: block;
+  font-size: 11px;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.pull-stat strong {
+  color: #00e5ff;
+  font-size: 15px;
+}
