@@ -3599,6 +3599,36 @@ function savePullSnapshot() {
   renderPullHistory();
 }
 
+function calculatePullScore(pull) {
+  const boost = pull.peakBoost || 0;
+  const rpm = pull.maxRpm || 0;
+  const speed = pull.topSpeed || 0;
+
+  let score = 0;
+
+  score += Math.min(boost * 3, 40);
+  score += Math.min(rpm / 120, 35);
+  score += Math.min(speed / 3, 25);
+
+  return Math.round(Math.min(score, 100));
+}
+
+function getPullGrade(score) {
+  if (score >= 90) return "S";
+  if (score >= 80) return "A";
+  if (score >= 70) return "B";
+  if (score >= 60) return "C";
+  return "D";
+}
+
+function getPullStatus(score) {
+  if (score >= 90) return "ELITE PULL";
+  if (score >= 80) return "STRONG PULL";
+  if (score >= 70) return "GOOD PULL";
+  if (score >= 60) return "BASELINE PULL";
+  return "LOW DATA / LIGHT PULL";
+}
+
 function renderPullHistory() {
   const box = $("pullHistoryList");
   if (!box) return;
@@ -3694,9 +3724,15 @@ function renderPullHistory() {
         <p>Peak Boost: ${pull.peakBoost ?? 0} PSI</p>
         <p>Max RPM: ${pull.maxRpm ?? 0} RPM</p>
         <p>Top Speed: ${pull.topSpeed ?? 0} MPH</p>
+        <p>Pull Score: ${calculatePullScore(pull)} / 100</p>
+        <p>Grade: ${getPullGrade(calculatePullScore(pull))}</p>
+        <p>Status: ${getPullStatus(calculatePullScore(pull))}</p>
 
         <button onclick="event.stopPropagation(); deletePull(${index})">
           DELETE
+        </button>
+        <button onclick="event.stopPropagation(); comparePull(${index})">
+          COMPARE
         </button>
 
         </div>
@@ -3742,6 +3778,55 @@ function deletePull(index) {
 
   speak("Pull deleted.");
 }
+
+let compareSelection = [];
+
+function comparePull(index) {
+  const pulls = JSON.parse(localStorage.getItem("revantaPulls") || "[]");
+  const pull = pulls[index];
+
+  if (!pull) return;
+
+  compareSelection.push(pull);
+
+  if (compareSelection.length > 2) {
+    compareSelection.shift();
+  }
+
+  if (compareSelection.length < 2) {
+    speak("Select one more pull.");
+    return;
+  }
+
+  const [a, b] = compareSelection;
+
+  $("pullComparePanel")?.classList.remove("hidden");
+
+  const scoreA = calculatePullScore(a);
+  const scoreB = calculatePullScore(b);
+
+  setValue("compareLeftBoost", `Boost: ${a.peakBoost ?? 0} PSI`);
+  setValue("compareRightBoost", `Boost: ${b.peakBoost ?? 0} PSI`);
+
+  setValue("compareLeftRpm", `RPM: ${a.maxRpm ?? 0}`);
+  setValue("compareRightRpm", `RPM: ${b.maxRpm ?? 0}`);
+
+  setValue("compareLeftSpeed", `Speed: ${a.topSpeed ?? 0} MPH`);
+  setValue("compareRightSpeed", `Speed: ${b.topSpeed ?? 0} MPH`);
+
+  setValue("compareLeftScore", `Score: ${scoreA}`);
+  setValue("compareRightScore", `Score: ${scoreB}`);
+
+  const winner =
+    scoreA > scoreB ? "Pull A Wins" :
+    scoreB > scoreA ? "Pull B Wins" :
+    "Pulls Are Tied";
+
+  setValue("compareWinner", winner);
+  speak(winner);
+}
+
+window.comparePull = comparePull;
 
 window.deletePull = deletePull;
 

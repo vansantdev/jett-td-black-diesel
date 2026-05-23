@@ -2283,3 +2283,33 @@ body.drive-mode .driving-hud {
   color: #00e5ff;
   font-size: 15px;
 }
+
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.compare-side {
+  background: rgba(0, 8, 20, 0.75);
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.compare-side h4 {
+  color: #00e5ff;
+  margin: 0 0 10px;
+}
+
+.compare-side p {
+  margin: 5px 0;
+}
+
+.compare-winner {
+  margin-top: 14px;
+  text-align: center;
+  font-weight: 900;
+  color: #f7c057;
+}
