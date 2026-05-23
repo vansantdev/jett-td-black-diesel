@@ -416,6 +416,16 @@
   </button>
 </div>
 
+<div class="backup-actions">
+  <button onclick="exportPullHistory()">
+    EXPORT PULLS
+  </button>
+
+  <button onclick="importPullHistory()">
+    IMPORT PULLS
+  </button>
+</div>
+
 <div class="card glow hidden" id="pullComparePanel">
   <h3>PULL COMPARE</h3>
 
@@ -445,6 +455,11 @@
   <div class="card glow">
     <h2>REVANTA PRO</h2>
 
+    <div class="active-vehicle-box">
+      Active Vehicle:
+      <strong id="activeGarageVehicle">Revanta Vehicle</strong>
+    </div>
+
     <p>
       Garage profiles, exports,
       advanced diagnostics,
@@ -453,6 +468,22 @@
 
     <button onclick="setRevantaPlan('pro')">
       UNLOCK PRO TEST
+    </button>
+
+    <button onclick="saveActiveVehicleToGarage()">
+      SAVE ACTIVE VEHICLE
+    </button>
+  </div>
+
+  <div class="pro-garage-panel">
+    <h3>GARAGE PROFILES</h3>
+
+    <div id="proGarageList">
+      No saved vehicles yet.
+    </div>
+
+    <button onclick="renderProGarage()">
+      REFRESH GARAGE
     </button>
   </div>
 

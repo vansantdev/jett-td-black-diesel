@@ -3565,6 +3565,39 @@ function saveGraphPoint(metrics) {
   renderLiveGraphs();
 }
 
+function getActiveGarageVehicleName() {
+  return localStorage.getItem("revantaActiveGarageVehicle")
+    || "Revanta Vehicle";
+}
+
+function getVehiclePullKey(vehicleName) {
+  return `revantaPulls_${
+    vehicleName.replace(/\s+/g, "_").toLowerCase()
+  }`;
+}
+
+function getActiveVehiclePulls() {
+  const vehicleName = getActiveGarageVehicleName();
+
+  return JSON.parse(
+    localStorage.getItem(
+      getVehiclePullKey(vehicleName)
+    ) || "[]"
+  );
+}
+
+function saveActiveVehiclePulls(pulls) {
+  const vehicleName = getActiveGarageVehicleName();
+
+  localStorage.setItem(
+    getVehiclePullKey(vehicleName),
+    JSON.stringify(pulls)
+  );
+}
+
+window.saveActiveVehiclePulls = saveActiveVehiclePulls;
+window.getActiveVehiclePulls = getActiveVehiclePulls;
+
 function savePullSnapshot() {
 
   if (!requirePlus("Pull history")) return;
@@ -3578,6 +3611,12 @@ function savePullSnapshot() {
   };
 
   savedPulls.unshift(snapshot);
+
+  const vehiclePulls = getActiveVehiclePulls();
+
+  vehiclePulls.unshift(snapshot);
+
+  saveActiveVehiclePulls(vehiclePulls);
 
   if (savedPulls.length > 10) {
     savedPulls.pop();
@@ -3635,7 +3674,7 @@ function renderPullHistory() {
 
   if (!requirePlus("Pull history")) return;
 
-  const pulls = JSON.parse(localStorage.getItem("revantaPulls") || "[]");
+  const pulls = getActiveVehiclePulls();
 
   const totalPulls = pulls.length;
 
@@ -3829,6 +3868,177 @@ function comparePull(index) {
 window.comparePull = comparePull;
 
 window.deletePull = deletePull;
+
+function exportPullHistory() {
+  const pulls =
+    localStorage.getItem("revantaPulls") || "[]";
+
+  const blob = new Blob(
+    [pulls],
+    { type: "application/json" }
+  );
+
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = `revanta-pulls-${Date.now()}.json`;
+
+  a.click();
+
+  URL.revokeObjectURL(url);
+
+  speak("Pull history exported.");
+}
+
+async function importPullHistory() {
+  const input = document.createElement("input");
+
+  input.type = "file";
+  input.accept = ".json";
+
+  input.onchange = async (event) => {
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    const text = await file.text();
+
+    try {
+      const pulls = JSON.parse(text);
+
+      localStorage.setItem(
+        "revantaPulls",
+        JSON.stringify(pulls)
+      );
+
+      renderPullHistory();
+
+      speak("Pull history restored.");
+    } catch {
+      speak("Import failed.");
+    }
+  };
+
+  input.click();
+}
+
+window.exportPullHistory = exportPullHistory;
+window.importPullHistory = importPullHistory;
+
+function getSavedVehicles() {
+  return JSON.parse(localStorage.getItem("revantaGarage") || "[]");
+}
+
+function saveActiveVehicleToGarage() {
+  if (!requirePro("Garage profiles")) return;
+
+  const profile = getActiveProfile ? getActiveProfile() : {};
+  const vehicles = getSavedVehicles();
+
+  const vehicle = {
+    id: Date.now(),
+    name: profile.vehicleName || profile.commandName || "Revanta Vehicle",
+    vin: profile.vin || "Unknown VIN",
+    lastSeen: new Date().toLocaleString(),
+    bestBoost: performance?.peakBoost || 0,
+    topSpeed: topSpeed || 0,
+    pullCount: getActiveVehiclePulls().length
+  };
+
+  vehicles.unshift(vehicle);
+
+  localStorage.setItem(
+    "revantaGarage",
+    JSON.stringify(vehicles)
+  );
+
+  renderProGarage();
+
+  speak("Vehicle saved to garage.");
+}
+
+function renderProGarage() {
+  const box = $("proGarageList");
+
+  if (!box) return;
+
+  if (!requirePro("Garage profiles")) return;
+
+  const vehicles = getSavedVehicles();
+
+  if (!vehicles.length) {
+    box.innerHTML = "No saved vehicles yet.";
+    return;
+  }
+
+  box.innerHTML = vehicles.map((vehicle, index) => `
+  <div class="garage-card">
+    <strong>${vehicle.name}</strong>
+    <p>VIN: ${vehicle.vin}</p>
+    <p>Last Seen: ${vehicle.lastSeen}</p>
+    <p>Best Boost: ${vehicle.bestBoost} PSI</p>
+    <p>Top Speed: ${vehicle.topSpeed} MPH</p>
+    <p>Pulls: ${vehicle.pullCount}</p>
+
+    <button onclick="loadGarageVehiclePro(${index})">
+      LOAD VEHICLE
+    </button>
+
+    <button onclick="deleteGarageVehiclePro(${index})">
+      DELETE
+    </button>
+  </div>
+`).join("");
+}
+
+  window.renderProGarage = renderProGarage;
+  window.saveActiveVehicleToGarage =
+  saveActiveVehicleToGarage;
+
+function loadGarageVehiclePro(index) {
+  if (!requirePro("Garage switching")) return;
+
+  const vehicles = getSavedVehicles();
+  const vehicle = vehicles[index];
+
+  if (!vehicle) return;
+
+  currentVehicleProfile.name = vehicle.name;
+  currentVehicleProfile.vin = vehicle.vin;
+  currentVehicleProfile.lastSeen = vehicle.lastSeen;
+
+  updateVehicleProfileUI();
+  saveVehicleProfile();
+
+  updateActiveGarageVehicle(vehicle.name);
+
+  speak(`${vehicle.name} loaded.`);
+}
+
+function deleteGarageVehiclePro(index) {
+  if (!confirm("Delete this vehicle from garage?")) return;
+
+  const vehicles = getSavedVehicles();
+  vehicles.splice(index, 1);
+
+  localStorage.setItem("revantaGarage", JSON.stringify(vehicles));
+
+  renderProGarage();
+
+  speak("Vehicle deleted.");
+}
+
+window.loadGarageVehiclePro = loadGarageVehiclePro;
+window.deleteGarageVehiclePro = deleteGarageVehiclePro;
+
+function updateActiveGarageVehicle(name) {
+  setValue("activeGarageVehicle", name || "Revanta Vehicle");
+  localStorage.setItem("revantaActiveGarageVehicle", name || "Revanta Vehicle");
+}
+
+window.updateActiveGarageVehicle = updateActiveGarageVehicle;
 
 function drawReplayGraph(data) {
 
@@ -5208,6 +5418,10 @@ if (commandInput) {
   logCommand(`${VERSION} loaded. Waiting for driver input.`);
 
   renderPullHistory();
+
+  updateActiveGarageVehicle(
+  localStorage.getItem("revantaActiveGarageVehicle") || "Revanta Vehicle"
+);
 
   if (obdLastDeviceId) {
     setTimeout(() => {

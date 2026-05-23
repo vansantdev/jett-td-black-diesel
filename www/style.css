@@ -2313,3 +2313,51 @@ body.drive-mode .driving-hud {
   font-weight: 900;
   color: #f7c057;
 }
+
+.backup-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.backup-actions button {
+  flex: 1;
+}
+
+.pro-garage-panel {
+  margin-top: 14px;
+}
+
+.garage-card {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(247, 148, 61, 0.28);
+  background: rgba(10, 8, 6, 0.65);
+  box-shadow: 0 0 16px rgba(247, 148, 61, 0.12);
+}
+
+.garage-card strong {
+  display: block;
+  color: #f7c057;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+.garage-card p {
+  margin: 4px 0;
+}
+
+.active-vehicle-box {
+  margin: 10px 0 14px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(247, 148, 61, 0.08);
+  border: 1px solid rgba(247, 148, 61, 0.25);
+  color: #ffffff;
+}
+
+.active-vehicle-box strong {
+  color: #f7c057;
+  letter-spacing: 1px;
+}
