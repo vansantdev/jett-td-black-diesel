@@ -3612,18 +3612,26 @@ function renderPullHistory() {
     return;
   }
 
+  const bestBoost = Math.max(...pulls.map(p => p.peakBoost || 0));
+
   box.innerHTML = pulls.map((pull, index) => {
     const date = new Date(pull.timestamp).toLocaleString();
 
     return `
       <div class="pull-card" onclick="openPullReplay(${index})">
         <strong>Pull #${index + 1}</strong>
+        ${(pull.peakBoost || 0) === bestBoost ? `<span class="best-pull-badge">BEST BOOST</span>` : ""}
         <p>${date}</p>
         <p>Peak Boost: ${pull.peakBoost ?? 0} PSI</p>
         <p>Max RPM: ${pull.maxRpm ?? 0} RPM</p>
         <p>Top Speed: ${pull.topSpeed ?? 0} MPH</p>
-      </div>
-    `;
+
+        <button onclick="event.stopPropagation(); deletePull(${index})">
+          DELETE
+        </button>
+
+        </div>
+        `;
   }).join("");
 }
 
@@ -3647,6 +3655,26 @@ function openPullReplay(index) {
 
 window.openPullReplay = openPullReplay;
 window.renderPullHistory = renderPullHistory;
+
+function deletePull(index) {
+  if (!confirm("Delete this saved pull?")) return;
+
+  const pulls = JSON.parse(localStorage.getItem("revantaPulls") || "[]");
+
+  pulls.splice(index, 1);
+
+  localStorage.setItem("revantaPulls", JSON.stringify(pulls));
+  savedPulls = pulls;
+
+  renderPullHistory();
+
+  const panel = $("pullReplayPanel");
+  if (panel) panel.classList.add("hidden");
+
+  speak("Pull deleted.");
+}
+
+window.deletePull = deletePull;
 
 function drawReplayGraph(data) {
 

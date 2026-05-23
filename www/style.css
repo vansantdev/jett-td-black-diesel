@@ -2237,3 +2237,22 @@ body.drive-mode .driving-hud {
   border-radius: 14px;
   background: rgba(0,0,0,0.25);
 }
+
+.best-pull-badge {
+  display: inline-block;
+  margin: 6px 0;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(247, 148, 61, 0.75);
+  color: #f7c057;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  box-shadow: 0 0 12px rgba(247, 148, 61, 0.28);
+}
+
+.pull-card button {
+  margin-top: 8px;
+  min-height: 32px;
+  font-size: 0.65rem;
+}
