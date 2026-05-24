@@ -455,6 +455,10 @@
   <div class="card glow">
     <h2>REVANTA PRO</h2>
 
+    <div id="vehicleIdentityBanner" class="vehicle-identity-banner">
+      Vehicle identity not loaded.
+    </div>
+
     <div class="active-vehicle-box">
       Active Vehicle:
       <strong id="activeGarageVehicle">Revanta Vehicle</strong>
@@ -486,6 +490,58 @@
       REFRESH GARAGE
     </button>
   </div>
+
+  <div class="pro-health-panel">
+  <h3>PRO HEALTH INTELLIGENCE</h3>
+
+  <div class="pro-ai-grid">
+
+  <div class="pro-ai-card">
+    <span class="pro-ai-label">THREAT LEVEL</span>
+    <strong id="threatLevel">LOW</strong>
+  </div>
+
+  <div class="pro-ai-card">
+    <span class="pro-ai-label">SYSTEM CONFIDENCE</span>
+    <strong id="systemConfidence">100%</strong>
+  </div>
+
+  <div class="pro-ai-card">
+    <span class="pro-ai-label">TURBO EFFICIENCY</span>
+    <strong id="turboEfficiency">NORMAL</strong>
+  </div>
+
+  <div class="pro-ai-card">
+    <span class="pro-ai-label">DRIVETRAIN STATUS</span>
+    <strong id="drivetrainStatus">STABLE</strong>
+  </div>
+
+</div>
+
+  <div id="proHealthReport" class="pro-health-report">
+    No health scan yet.
+  </div>
+
+  <button onclick="runProHealthReport()">
+    RUN PRO HEALTH REPORT
+  </button>
+</div>
+
+<div class="pro-calibration-panel">
+  <h3>VEHICLE CALIBRATION</h3>
+
+  <div id="calibrationInfo">
+    No calibration loaded.
+  </div>
+
+  <button onclick="loadVehicleCalibration()">
+    LOAD CALIBRATION
+  </button>
+
+  <button onclick="editVehicleCalibration()">
+    EDIT CALIBRATION
+  </button>
+</div>
 
 </section>
 

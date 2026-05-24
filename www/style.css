@@ -5,16 +5,20 @@
 
 :root {
   --bg: #03050a;
-  --panel: rgba(5, 10, 20, 0.88);
-  --panel2: rgba(10, 16, 28, 0.94);
+  --panel: rgba(5, 10, 20, 0.9);
+  --panel2: rgba(10, 16, 28, 0.96);
   --accent: #00eaff;
   --accent2: #d56cff;
+  --gold: #f7c057;
+  --orange: #f7943d;
   --text: #eaffff;
   --muted: #9fd8e0;
   --danger: #ff4040;
-  --line-soft: color-mix(in srgb, var(--accent) 35%, transparent);
-  --line-hot: color-mix(in srgb, var(--accent) 70%, transparent);
-  --driveGlow: 0.35;
+  --success: #7dffb2;
+  --warning: #ffd27a;
+  --line-soft: color-mix(in srgb, var(--accent) 32%, transparent);
+  --line-hot: color-mix(in srgb, var(--accent) 68%, transparent);
+  --driveGlow: rgba(0, 180, 255, 0.12);
 }
 
 /* THEMES */
@@ -77,14 +81,6 @@ body {
   background: var(--bg);
 }
 
-.app-logo{
-  width:120px;
-  height:auto;
-  display:block;
-  margin:0 auto 18px;
-  filter:drop-shadow(0 0 18px rgba(0,234,255,0.6));
-}
-
 body {
   color: var(--text);
   font-family: "Segoe UI", Arial, Helvetica, sans-serif;
@@ -131,8 +127,8 @@ body {
   content: "";
   position: fixed;
   inset: -25%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent) calc(var(--driveGlow) * 40%), transparent), transparent 45%);
-  opacity: 0.22;
+  background: radial-gradient(circle, var(--driveGlow), transparent 45%);
+  opacity: 0.24;
   filter: blur(10px);
   pointer-events: none;
   animation: driftGlow 7s infinite alternate ease-in-out;
@@ -144,1959 +140,7 @@ body {
   to { transform: translate(2%, 1%); }
 }
 
-/* SETUP / BOOT */
-.setup-screen,
-.boot-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 999;
-  display: grid;
-  place-items: center;
-  padding: 18px;
-  background:
-    radial-gradient(circle at center, color-mix(in srgb, var(--accent) 18%, transparent), transparent 42%),
-    linear-gradient(180deg, #010208, var(--bg));
-  overflow-y: auto;
-}
-
-.setup-card,
-.boot-card {
-  width: min(94vw, 640px);
-  padding: 28px;
-  border-radius: 28px;
-  border: 1px solid var(--line-hot);
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.055), transparent),
-    var(--panel2);
-  box-shadow:
-    inset 0 0 28px rgba(255,255,255,0.03),
-    0 0 34px color-mix(in srgb, var(--accent) 42%, transparent),
-    0 0 80px color-mix(in srgb, var(--accent2) 18%, transparent);
-  text-align: center;
-  backdrop-filter: blur(16px);
-}
-
-.brand-mark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-
-.brand-icon {
-  width: 66px;
-  height: 66px;
-  display: grid;
-  place-items: center;
-  border: 2px solid var(--accent);
-  border-radius: 20px;
-  color: var(--accent);
-  font-size: 40px;
-  font-weight: 900;
-  background: rgba(0,0,0,0.32);
-  text-shadow: 0 0 22px var(--accent);
-  box-shadow:
-    0 0 18px var(--accent),
-    inset 0 0 18px color-mix(in srgb, var(--accent) 20%, transparent);
-  animation: revantaPulse 2s infinite ease-in-out;
-}
-
-@keyframes revantaPulse {
-  0%, 100% { transform: scale(1); opacity: 0.92; }
-  50% { transform: scale(1.05); opacity: 1; }
-}
-
-.boot-card h1,
-.setup-card h1 {
-  margin: 0;
-  font-size: clamp(34px, 8vw, 60px);
-  letter-spacing: 7px;
-  color: var(--accent);
-  text-shadow: 0 0 24px color-mix(in srgb, var(--accent) 68%, transparent);
-}
-
-.boot-card p,
-.setup-card p {
-  margin: 10px 0 14px;
-  font-size: 14px;
-  letter-spacing: 3px;
-  color: var(--accent2);
-  text-transform: uppercase;
-}
-
-.boot-card span {
-  display: block;
-  margin-bottom: 14px;
-  letter-spacing: 2px;
-}
-
-.boot-log {
-  text-align: left;
-  font-size: 14px;
-  color: var(--muted);
-  background: rgba(0,0,0,0.38);
-  border: 1px solid var(--line-soft);
-  border-radius: 14px;
-  padding: 12px;
-  min-height: 96px;
-  margin-bottom: 14px;
-  overflow: auto;
-}
-
-.setup-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-  margin-top: 14px;
-}
-
-.setup-grid input,
-.setup-grid select,
-.nav-search input {
-  width: 100%;
-  padding: 11px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--line-soft);
-  background: rgba(0, 14, 28, 0.92);
-  color: var(--text);
-  font-weight: bold;
-  outline: none;
-}
-
-.setup-grid input::placeholder {
-  color: rgba(234,255,255,0.45);
-}
-
-.setup-actions {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-  margin-top: 16px;
-}
-
-/* DASHBOARD SHELL */
-.dashboard {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  min-height: 100dvh;
-  padding: 8px;
-  padding-bottom: 92px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  overflow-x: hidden;
-}
-
-.top-bar {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  align-items: center;
-  padding: 10px;
-  border-radius: 20px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.055), transparent),
-    var(--panel);
-  border: 1px solid var(--line-soft);
-  box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 20%, transparent);
-  backdrop-filter: blur(14px);
-}
-
-.top-bar h1 {
-  margin: 0;
-  color: var(--accent);
-  letter-spacing: 4px;
-  font-size: clamp(24px, 7vw, 34px);
-  line-height: 1;
-  text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 65%, transparent);
-}
-
-.top-bar p {
-  margin: 4px 0 0;
-  color: var(--accent2);
-  letter-spacing: 2px;
-  font-size: 12px;
-  text-transform: uppercase;
-}
-
-.status-pill-group,
-.top-actions {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.status-pill {
-  padding: 6px 9px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 800;
-  border: 1px solid var(--line-soft);
-  background: rgba(255,255,255,0.04);
-}
-
-.top-actions button {
-  flex: 1;
-  min-width: 92px;
-}
-
-/* TABS */
-.tab {
-  display: none;
-  width: 100%;
-  padding-bottom: 92px;
-}
-
-.tab.active {
-  display: block !important;
-}
-
-/* COMMON CARDS */
-.gauge,
-.performance-card,
-.copilot-box,
-.copilot-card,
-.mini-card,
-.diagnostic-card,
-#settingsTab,
-#performanceTab,
-#copilotTab,
-#commandTab {
-  position: relative;
-  overflow: hidden;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.012)),
-    var(--panel);
-  border: 1px solid var(--line-soft);
-  border-radius: 16px;
-  box-shadow:
-    inset 0 0 18px rgba(255,255,255,0.022),
-    0 0 15px color-mix(in srgb, var(--accent) 18%, transparent);
-  backdrop-filter: blur(12px);
-}
-
-.gauge::after,
-.performance-card::after,
-.diagnostic-card::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -40%;
-  width: 35%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 12%, transparent), transparent);
-  animation: sweep 4s infinite;
-  pointer-events: none;
-}
-
-@keyframes sweep {
-  0% { left: -40%; }
-  50% { left: 120%; }
-  100% { left: 120%; }
-}
-
-/* DASH */
-.gauge-grid,
-#dashTab .gauge-grid {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 8px !important;
-  width: 100% !important;
-}
-
-.gauge {
-  min-height: 82px;
-  padding: 8px;
-  text-align: center;
-}
-
-.hero-gauge {
-  min-height: 86px;
-}
-
-.gauge span {
-  display: block;
-  color: var(--accent);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 2px;
-}
-
-.gauge strong {
-  display: block;
-  font-size: 29px;
-  margin: 5px 0 1px;
-  color: #fff;
-  line-height: 1.05;
-  text-shadow:
-    0 0 14px rgba(255,255,255,0.22),
-    0 0 24px color-mix(in srgb, var(--accent) 32%, transparent);
-}
-
-.gauge small {
-  color: var(--accent2);
-  font-weight: 800;
-  font-size: 10px;
-}
-
-.small-gauge strong {
-  font-size: 22px;
-}
-
-.quick-buttons,
-.mode-grid,
-.voice-grid,
-.theme-grid,
-.performance-grid,
-.diagnostics-grid,
-.copilot-grid {
-  margin-top: 8px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-/* BUTTONS */
-button {
-  border: 1px solid var(--line-hot);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent) 13%, transparent), rgba(0,0,0,0.28));
-  color: var(--text);
-  border-radius: 13px;
-  min-height: 42px;
-  padding: 8px 9px;
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 1.35px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: 0.15s ease;
-  touch-action: manipulation;
-  user-select: none;
-  box-shadow:
-    inset 0 0 12px rgba(255,255,255,0.022),
-    0 0 12px color-mix(in srgb, var(--accent) 16%, transparent);
-}
-
-button:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    0 0 20px color-mix(in srgb, var(--accent) 38%, transparent),
-    inset 0 0 16px rgba(255,255,255,0.035);
-}
-
-button:active {
-  transform: scale(0.97);
-}
-
-.big-btn {
-  width: 100%;
-  min-height: 46px;
-  margin: 8px 0;
-}
-
-h2 {
-  margin: 0 0 8px;
-  color: var(--accent);
-  letter-spacing: 3px;
-  font-size: 22px;
-  line-height: 1.05;
-  text-shadow: 0 0 16px color-mix(in srgb, var(--accent) 55%, transparent);
-}
-
-h3 {
-  margin: 10px 0 7px;
-  color: var(--accent2);
-  letter-spacing: 2px;
-  font-size: 17px;
-}
-
-.note,
-.performance-card small,
-.copilot-card small,
-.diagnostic-card small {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-/* PERFORMANCE */
-#performanceTab,
-#commandTab,
-#copilotTab,
-#settingsTab {
-  padding: 10px;
-}
-
-.performance-card,
-.copilot-card,
-.diagnostic-card {
-  min-height: 92px;
-  padding: 10px;
-  text-align: center;
-}
-
-.performance-card span,
-.copilot-card span,
-.diagnostic-card span,
-.nav-gauges .mini-card span {
-  display: block;
-  color: var(--accent);
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 2px;
-}
-
-.performance-card strong,
-.copilot-card strong,
-.diagnostic-card strong {
-  display: block;
-  margin: 6px 0 3px;
-  font-size: 23px;
-  line-height: 1.05;
-  color: #fff;
-  text-shadow: 0 0 16px color-mix(in srgb, var(--accent) 42%, transparent);
-}
-
-/* DIAGNOSTICS */
-#diagnosticsTab {
-  padding: 8px 0 92px !important;
-}
-
-#diagnosticsTab h2 {
-  padding: 0 2px;
-  font-size: 24px !important;
-  margin-bottom: 8px;
-}
-
-.diagnostics-grid {
-  margin-bottom: 8px;
-}
-
-.diagnostic-card {
-  min-height: 86px;
-}
-
-.diagnostic-card strong {
-  font-size: 24px;
-}
-
-.diagnostics-actions {
-  margin: 8px 0;
-}
-
-.diagnostics-actions button {
-  min-height: 46px !important;
-}
-
-.diagnostics-box {
-  margin-top: 8px;
-  padding: 10px;
-  border-radius: 16px;
-}
-
-.diagnostics-box h3 {
-  margin: 0 0 8px;
-  font-size: 17px;
-}
-
-#diagnosticResults,
-#rawDtcOutput,
-#codeHistoryOutput,
-#commandLog,
-#copilotOutput {
-  font-size: 14px;
-  line-height: 1.35;
-  word-break: break-word;
-  color: var(--text);
-  white-space: pre-wrap;
-}
-
-.diagnostic-results {
-  display: grid;
-  gap: 10px;
-}
-
-.diagnostic-empty {
-  color: var(--muted);
-  font-size: 14px;
-}
-
-/* DTC SMART CARDS */
-.dtc-card {
-  border-radius: 18px;
-  border: 1px solid #00d9ff55;
-  background: rgba(0,0,0,0.55);
-  padding: 14px;
-  margin-bottom: 10px;
-  box-shadow:
-    inset 0 0 14px rgba(255,255,255,0.022),
-    0 0 16px color-mix(in srgb, var(--accent) 22%, transparent);
-  backdrop-filter: blur(10px);
-}
-
-.dtc-topline {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
-.dtc-topline strong,
-.dtc-card > strong {
-  color: var(--accent);
-  font-size: 23px;
-  letter-spacing: 4px;
-  text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 60%, transparent);
-}
-
-.dtc-topline span,
-.dtc-card > span {
-  color: #ffb347;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 1px;
-}
-
-.dtc-card h3 {
-  margin: 8px 0;
-  color: #fff;
-  font-size: 22px;
-  line-height: 1.22;
-  letter-spacing: 2px;
-}
-
-.dtc-card p,
-.dtc-card li {
-  color: #d7f6ff;
-  line-height: 1.42;
-  font-size: 14px;
-}
-
-.dtc-card p {
-  margin: 0 0 9px;
-}
-
-.dtc-card ul {
-  margin: 7px 0 0;
-  padding-left: 20px;
-}
-
-.dtc-card li {
-  margin-bottom: 5px;
-}
-
-.dtc-card details {
-  margin-top: 8px;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  padding-top: 8px;
-}
-
-.dtc-card summary {
-  color: var(--accent2);
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.dtc-card.severity-low {
-  border-color: rgba(0, 255, 150, 0.3);
-}
-
-.dtc-card.severity-medium {
-  border-color: rgba(255, 200, 0, 0.42);
-}
-
-.dtc-card.severity-high {
-  border-color: rgba(255, 80, 80, 0.55);
-  box-shadow:
-    0 0 18px rgba(255, 80, 80, 0.22),
-    inset 0 0 16px rgba(255,255,255,0.025);
-}
-
-.dtc-card p b {
-  color: var(--accent2);
-}
-
-/* COMMAND / COPILOT */
-.command-panel,
-.copilot-box {
-  padding: 10px;
-}
-
-#commandTab .mode-grid button,
-#copilotTab .mode-grid button,
-#settingsTab .voice-grid button,
-#settingsTab .theme-grid button {
-  min-height: 44px;
-}
-
-#commandTab .copilot-box,
-#copilotTab .copilot-box {
-  margin-top: 10px;
-  max-height: 180px;
-  overflow-y: auto;
-}
-
-/* NAV */
-#navTab {
-  height: auto;
-  overflow: visible;
-}
-
-.nav-header-row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.nav-search {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.nav-search input {
-  grid-column: 1 / -1;
-}
-
-.nav-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-}
-
-.map-panel {
-  height: 330px;
-  min-height: 0;
-  border: 1px solid var(--line-hot);
-  border-radius: 18px;
-  overflow: hidden;
-  background: var(--panel);
-  box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 20%, transparent);
-}
-
-.map-panel iframe {
-  width: 100%;
-  height: 100%;
-  border: 0;
-}
-
-.nav-gauges {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.nav-gauges .mini-card {
-  min-height: 60px;
-  padding: 8px;
-  text-align: center;
-}
-
-.nav-gauges .mini-card strong {
-  display: block;
-  margin-top: 6px;
-  font-size: 18px;
-  line-height: 1.1;
-}
-
-/* BOTTOM NAV */
-.bottom-nav {
-  position: fixed;
-  left: 50%;
-  bottom: 8px;
-  transform: translateX(-50%);
-  width: min(94vw, 720px);
-  z-index: 999;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-  padding: 7px;
-  padding-bottom: calc(7px + env(safe-area-inset-bottom));
-  border-radius: 18px;
-  border: 1px solid var(--line-soft);
-  background: rgba(0, 0, 0, 0.88);
-  backdrop-filter: blur(12px);
-}
-
-.bottom-nav button {
-  min-height: 38px;
-  font-size: 9px;
-  padding: 6px 4px;
-}
-
-/* ALERT / EFFECTS */
-.glow {
-  animation: pulseGlow 2s infinite alternate;
-}
-
-@keyframes pulseGlow {
-  from { box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 30%, transparent); }
-  to {
-    box-shadow:
-      0 0 20px color-mix(in srgb, var(--accent) 62%, transparent),
-      0 0 36px color-mix(in srgb, var(--accent2) 24%, transparent);
-  }
-}
-
-.value-alert {
-  color: var(--danger) !important;
-  animation: alertPulse 0.5s infinite alternate;
-}
-
-@keyframes alertPulse {
-  from { text-shadow: 0 0 8px var(--danger); }
-  to { text-shadow: 0 0 22px var(--danger); }
-}
-
-.value-pop {
-  animation: popValue 0.2s ease;
-}
-
-@keyframes popValue {
-  from { transform: scale(1.06); }
-  to { transform: scale(1); }
-}
-
-body.spool-mode .hero-gauge {
-  animation: spoolShake 0.18s infinite alternate;
-}
-
-@keyframes spoolShake {
-  from { transform: translateX(-1px); }
-  to { transform: translateX(1px); }
-}
-
-body.ambient-drive-glow .gauge,
-body.ambient-drive-glow .performance-card,
-body.ambient-drive-glow .top-bar {
-  box-shadow: 0 0 calc(17px * var(--driveGlow)) color-mix(in srgb, var(--accent) 50%, transparent);
-}
-
-body.security-mode .app::before {
-  background:
-    linear-gradient(rgba(255,0,0,0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,0,0,0.05) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-/* TAB PERSONALITY */
-body.tab-performance {
-  background:
-    radial-gradient(circle at top, rgba(255, 80, 20, 0.16), transparent 35%),
-    radial-gradient(circle at bottom, rgba(255, 0, 0, 0.1), transparent 40%),
-    #050000;
-}
-
-body.tab-performance .performance-card {
-  border: 1px solid rgba(255, 90, 40, 0.35);
-}
-
-body.tab-performance .performance-card strong {
-  text-shadow: 0 0 16px rgba(255, 110, 40, 0.72);
-}
-
-body.tab-diagnostics .top-bar {
-  box-shadow:
-    0 0 24px color-mix(in srgb, var(--accent) 25%, transparent),
-    0 0 36px rgba(255, 64, 64, 0.12);
-}
-
-body.tab-diagnostics #pageTitle {
-  color: var(--accent2);
-}
-
-/* PHONE TIGHTENING */
-@media (max-width: 430px) {
-  .dashboard {
-    padding: 7px;
-    padding-bottom: 88px;
-    gap: 7px;
-  }
-
-  .top-bar {
-    padding: 9px;
-    border-radius: 18px;
-  }
-
-  .top-bar h1 {
-    font-size: 25px;
-    letter-spacing: 3px;
-  }
-
-  .status-pill {
-    font-size: 9px;
-    padding: 5px 8px;
-  }
-
-  button {
-    min-height: 40px;
-    font-size: 9px;
-  }
-
-  .gauge {
-    min-height: 78px;
-    padding: 7px;
-  }
-
-  .hero-gauge {
-    min-height: 82px;
-  }
-
-  .gauge strong {
-    font-size: 27px;
-  }
-
-  .small-gauge strong {
-    font-size: 20px;
-  }
-
-  .performance-card,
-  .copilot-card,
-  .diagnostic-card {
-    min-height: 82px;
-    padding: 8px;
-  }
-
-  .performance-card strong,
-  .copilot-card strong,
-  .diagnostic-card strong {
-    font-size: 21px;
-  }
-
-  .dtc-card {
-    padding: 12px;
-  }
-
-  .dtc-card h3 {
-    font-size: 20px;
-  }
-
-  .dtc-card p,
-  .dtc-card li {
-    font-size: 13px;
-  }
-}
-
-/* BIGGER SCREENS / TABLET / CAR DISPLAY */
-@media (min-width: 900px) {
-  .dashboard {
-    padding: 12px;
-    padding-bottom: 82px;
-  }
-
-  .top-bar {
-    grid-template-columns: minmax(220px, auto) 1fr auto;
-    padding: 10px 12px;
-  }
-
-  .gauge-grid,
-  #dashTab .gauge-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-  }
-
-  .gauge {
-    min-height: 108px;
-    padding: 11px;
-  }
-
-  .hero-gauge {
-    min-height: 122px;
-  }
-
-  .gauge strong {
-    font-size: clamp(34px, 4vw, 50px);
-    margin: 9px 0 3px;
-  }
-
-  .small-gauge strong {
-    font-size: clamp(20px, 2.3vw, 30px);
-  }
-
-  .quick-buttons {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-
-  .mode-grid,
-  .voice-grid,
-  .theme-grid,
-  .performance-grid,
-  .diagnostics-grid,
-  .copilot-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .bottom-nav {
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-  }
-
-  .nav-header-row {
-    grid-template-columns: auto 1fr;
-    align-items: center;
-  }
-
-  .nav-search {
-    grid-template-columns: 1fr auto auto auto;
-  }
-
-  .nav-search input {
-    grid-column: auto;
-  }
-
-  .nav-layout {
-    grid-template-columns: 3fr 1fr;
-    height: calc(100vh - 170px);
-    overflow: hidden;
-  }
-
-  .map-panel {
-    height: 100%;
-  }
-
-  .nav-gauges {
-    height: 100%;
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(5, 1fr);
-  }
-
-  .setup-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .setup-actions {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* REVANTA FIXED BOTTOM NAV UPGRADE */
-
-.dashboard {
-  padding-bottom: 150px;
-}
-
-.bottom-nav {
-  position: fixed;
-  left: 50%;
-  bottom: max(14px, env(safe-area-inset-bottom));
-  transform: translateX(-50%);
-  width: min(92vw, 720px);
-  z-index: 9999;
-
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-
-  padding: 12px;
-  border-radius: 22px;
-
-  background: rgba(5, 8, 12, 0.78);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-
-  border: 1px solid rgba(0, 234, 255, 0.42);
-  box-shadow:
-    0 0 24px rgba(0, 234, 255, 0.22),
-    inset 0 0 20px rgba(0, 234, 255, 0.06);
-}
-
-.bottom-nav button {
-  min-height: 54px;
-  padding: 10px 8px;
-  font-size: 0.78rem;
-  letter-spacing: 0.12em;
-  border-radius: 16px;
-}
-
-@media (max-width: 520px) {
-  .dashboard {
-    padding-bottom: 145px;
-  }
-
-  .bottom-nav {
-    width: calc(100vw - 28px);
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    padding: 10px;
-  }
-
-  .bottom-nav button {
-    min-height: 48px;
-    font-size: 0.68rem;
-    letter-spacing: 0.1em;
-  }
-}
-
-/* REVANTA DENSITY UPGRADE */
-
-.gauge-grid {
-  gap: 12px;
-}
-
-.gauge {
-  min-height: 118px;
-  padding: 14px;
-  border-radius: 22px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(22, 26, 32, 0.96),
-      rgba(10, 12, 16, 0.98)
-    );
-
-  border: 1px solid rgba(0, 225, 255, 0.30);
-
-  box-shadow:
-    0 0 18px rgba(0, 225, 255, 0.10),
-    inset 0 0 12px rgba(255,255,255,0.03);
-}
-
-.gauge span {
-  font-size: 0.78rem;
-  letter-spacing: 0.16em;
-  opacity: 0.88;
-}
-
-.gauge strong {
-  font-size: 2rem;
-  line-height: 1;
-  margin-top: 8px;
-}
-
-.gauge small {
-  font-size: 0.72rem;
-  opacity: 0.72;
-  margin-top: 6px;
-}
-
-.hero-gauge {
-  min-height: 128px;
-}
-
-.top-bar.compact-top {
-  padding-top: max(10px, env(safe-area-inset-top));
-  padding-bottom: 10px;
-}
-
-/* REVANTA ULTRA COMPACT HEADER */
-
-.top-bar.compact-top {
-  padding:
-    max(6px, env(safe-area-inset-top))
-    14px
-    8px;
-
-  margin-bottom: 12px;
-
-  border-radius: 18px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(18, 22, 28, 0.92),
-      rgba(10, 12, 16, 0.88)
-    );
-
-  border: 1px solid rgba(0, 225, 255, 0.18);
-
-  box-shadow:
-    0 0 18px rgba(0, 225, 255, 0.08),
-    inset 0 0 12px rgba(255,255,255,0.02);
-}
-
-.vehicle-title h1 {
-  font-size: 2rem;
-  line-height: 1;
-  margin-bottom: 2px;
-  letter-spacing: 0.04em;
-}
-
-.vehicle-title p {
-  font-size: 0.72rem;
-  letter-spacing: 0.22em;
-  opacity: 0.72;
-}
-
-.status-pill-group {
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.status-pill {
-  padding: 5px 10px;
-  font-size: 0.62rem;
-  border-radius: 999px;
-}
-
-@media (max-width: 520px) {
-  .vehicle-title h1 {
-    font-size: 1.7rem;
-  }
-
-  .vehicle-title p {
-    font-size: 0.64rem;
-  }
-
-  .status-pill {
-    font-size: 0.56rem;
-    padding: 4px 8px;
-  }
-}
-
-/* REVANTA NAV CLEARANCE FIX */
-.dashboard {
-  padding-bottom: 190px;
-}
-
-.tab {
-  padding-bottom: 170px;
-}
-
-@media (max-width: 520px) {
-  .dashboard {
-    padding-bottom: 205px;
-  }
-
-  .tab {
-    padding-bottom: 190px;
-  }
-}
-
-/* tighter nav */
-.bottom-nav button {
-  min-height: 52px;
-  font-size: 0.82rem;
-  letter-spacing: 1px;
-}
-
-/* stronger gauges */
-.gauge strong {
-  font-size: 2rem;
-  font-weight: 900;
-}
-
-/* softer cards */
-.gauge,
-.performance-card,
-.diagnostic-card,
-.command-panel,
-.copilot-box {
-  backdrop-filter: blur(12px);
-  box-shadow:
-    inset 0 0 18px rgba(255,255,255,0.03),
-    0 0 18px rgba(0,180,255,0.12);
-}
-
-/* REVANTA ACTIVE TAB STATE */
-
-.bottom-nav button {
-  opacity: 0.82;
-}
-
-body.tab-dash .bottom-nav button:nth-child(1),
-body.tab-performance .bottom-nav button:nth-child(2),
-body.tab-diagnostics .bottom-nav button:nth-child(3),
-body.tab-command .bottom-nav button:nth-child(4),
-body.tab-copilot .bottom-nav button:nth-child(5),
-body.tab-nav .bottom-nav button:nth-child(6),
-body.tab-upgrade .bottom-nav button:nth-child(7),
-body.tab-settings .bottom-nav button:nth-child(8) {
-  opacity: 1;
-  color: #ffffff;
-  border-color: rgba(0, 234, 255, 0.9);
-  box-shadow:
-    0 0 18px rgba(0, 234, 255, 0.45),
-    inset 0 0 18px rgba(0, 234, 255, 0.12);
-}
-
-@keyframes revantaPulse {
-  0% {
-    box-shadow:
-      inset 0 0 18px rgba(255,255,255,0.03),
-      0 0 10px rgba(0,180,255,0.10);
-  }
-
-  50% {
-  box-shadow:
-    inset 0 0 20px rgba(255,255,255,0.03),
-    0 0 16px rgba(0,180,255,0.16);
-}
-
-  100% {
-    box-shadow:
-      inset 0 0 18px rgba(255,255,255,0.03),
-      0 0 10px rgba(0,180,255,0.10);
-  }
-}
-
-.gauge.hero-gauge {
-  animation: revantaPulse 4s ease-in-out infinite;
-}
-
-/* REVANTA BOOT CINEMATIC */
-
-.boot-screen {
-  background:
-    radial-gradient(circle at top, rgba(0, 234, 255, 0.18), transparent 38%),
-    linear-gradient(180deg, #05070a, #000);
-}
-
-.boot-card {
-  animation: bootWake 1.4s ease-out both;
-}
-
-.boot-logo {
-  animation: logoCharge 2.4s ease-in-out infinite;
-}
-
-.boot-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  background: linear-gradient(
-    120deg,
-    transparent 0%,
-    rgba(0, 234, 255, 0.18) 45%,
-    transparent 70%
-  );
-  transform: translateX(-120%);
-  animation: bootScan 2.8s ease-in-out infinite;
-}
-
-@keyframes bootWake {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(18px);
-    filter: blur(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-    filter: blur(0);
-  }
-}
-
-@keyframes logoCharge {
-  0%, 100% {
-    text-shadow:
-      0 0 12px rgba(0, 234, 255, 0.45),
-      0 0 28px rgba(0, 234, 255, 0.18);
-  }
-
-  50% {
-    text-shadow:
-      0 0 18px rgba(0, 234, 255, 0.9),
-      0 0 44px rgba(0, 234, 255, 0.36);
-  }
-}
-
-@keyframes bootScan {
-  0% {
-    transform: translateX(-120%);
-  }
-
-  45% {
-    transform: translateX(120%);
-  }
-
-  100% {
-    transform: translateX(120%);
-  }
-}
-
-/* REVANTA DYNAMIC DRIVE GLOW */
-
-body.drive-idle {
-  --driveGlow: rgba(0, 180, 255, 0.10);
-}
-
-body.drive-active {
-  --driveGlow: rgba(0, 180, 255, 0.18);
-}
-
-body.drive-hard {
-  --driveGlow: rgba(255, 120, 0, 0.22);
-}
-
-body.drive-insane {
-  --driveGlow: rgba(255, 40, 0, 0.30);
-}
-
-.gauge,
-.performance-card,
-.diagnostic-card,
-.command-panel,
-.copilot-box,
-.nav-layout {
-  box-shadow:
-    inset 0 0 18px rgba(255,255,255,0.03),
-    0 0 18px var(--driveGlow);
-}
-
-/* REVANTA OBD CONNECTION STATE */
-
-body.obd-connected #obdStatus,
-body.obd-connected #sourceStatus {
-  color: #9dffcf;
-  border-color: rgba(80, 255, 170, 0.75);
-  box-shadow: 0 0 14px rgba(80, 255, 170, 0.28);
-}
-
-body.obd-connecting #obdStatus,
-body.obd-connecting #sourceStatus {
-  color: #ffd27a;
-  border-color: rgba(255, 190, 80, 0.75);
-  box-shadow: 0 0 14px rgba(255, 190, 80, 0.24);
-}
-
-body.obd-failed #obdStatus,
-body.obd-failed #sourceStatus {
-  color: #ff8b8b;
-  border-color: rgba(255, 80, 80, 0.75);
-  box-shadow: 0 0 14px rgba(255, 80, 80, 0.25);
-}
-
-/* REVANTA IMMERSIVE MODE */
-
-body.immersive-mode .top-bar {
-  opacity: 0.88;
-  transform: scale(0.985);
-}
-
-body.immersive-mode .bottom-nav {
-  bottom: 8px;
-  opacity: 0.92;
-}
-
-body.immersive-mode .dashboard {
-  padding-top: 6px;
-}
-
-body.immersive-mode .gauge-grid {
-  gap: 10px;
-}
-
-/* REVANTA SHUTDOWN ANIMATION */
-
-body.revanta-shutdown .gauge,
-body.revanta-shutdown .performance-card,
-body.revanta-shutdown .diagnostic-card,
-body.revanta-shutdown .copilot-card,
-body.revanta-shutdown .mini-card {
-  animation: shutdownFade 0.85s ease both;
-}
-
-@keyframes shutdownFade {
-  0% {
-    opacity: 1;
-    filter: brightness(1);
-  }
-
-  100% {
-    opacity: 0.55;
-    filter: brightness(0.55);
-  }
-}
-
-/* REVANTA VOICE STATE */
-
-body.voice-listening .top-bar {
-  border-color: rgba(0, 255, 180, 0.65);
-  box-shadow:
-    0 0 24px rgba(0, 255, 180, 0.18),
-    inset 0 0 18px rgba(0, 255, 180, 0.06);
-}
-
-body.voice-listening .status-pill-group {
-  animation: voicePulse 1s ease-in-out infinite;
-}
-
-@keyframes voicePulse {
-  0%, 100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.72;
-  }
-}
-
-/* REVANTA COMMAND MODAL */
-
-.command-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 12000;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: rgba(0,0,0,0.68);
-  backdrop-filter: blur(10px);
-}
-
-.command-modal-card {
-  width: min(90vw, 420px);
-
-  padding: 22px;
-  border-radius: 24px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(18, 22, 28, 0.98),
-      rgba(8, 10, 14, 0.98)
-    );
-
-  border: 1px solid rgba(0, 234, 255, 0.34);
-
-  box-shadow:
-    0 0 30px rgba(0, 234, 255, 0.22),
-    inset 0 0 24px rgba(255,255,255,0.03);
-}
-
-.command-modal-card h2 {
-  margin-bottom: 18px;
-  letter-spacing: 0.14em;
-}
-
-.command-modal-card input {
-  width: 100%;
-  min-height: 58px;
-
-  padding: 0 16px;
-  margin-bottom: 18px;
-
-  border-radius: 16px;
-  border: 1px solid rgba(0, 234, 255, 0.22);
-
-  background: rgba(255,255,255,0.04);
-  color: white;
-
-  font-size: 1rem;
-}
-
-.command-modal-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-/* REVANTA TACTICAL DRIVE LAYOUT */
-
-.drive-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-.drive-center {
-  min-width: 0;
-}
-
-.drive-right {
-  display: grid;
-  gap: 12px;
-}
-
-.mini-nav-box,
-.mini-weather,
-.copilot-mini {
-  min-height: 92px;
-  border-radius: 18px;
-  border: 1px solid rgba(0, 234, 255, 0.22);
-  background: rgba(0, 0, 0, 0.32);
-  display: grid;
-  place-items: center;
-  text-align: center;
-  color: var(--muted);
-}
-
-.mini-nav-box {
-  height: 240px;
-}
-
-.mini-weather {
-  box-shadow:
-    0 0 18px rgba(255, 0, 140, 0.22);
-}
-
-.mini-weather strong {
-  display: block;
-  font-size: 2rem;
-  color: #fff;
-}
-
-.mini-weather span,
-.copilot-mini span {
-  font-size: 0.85rem;
-}
-
-/* tablet / car screen tactical split */
-@media (min-width: 760px) {
-  .drive-layout {
-    grid-template-columns: minmax(0, 2fr) minmax(260px, 0.85fr);
-    align-items: start;
-  }
-
-  .drive-right {
-  position: sticky;
-  top: 8px;
-  align-self: start;
-}
-
-  #dashTab .gauge-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-}
-
-.drive-right h3 {
-  letter-spacing: 2px;
-  font-size: 1rem;
-}
-
-body.drive-mode .top-bar {
-  padding: 10px 14px;
-}
-
-body.drive-mode .vehicle-title h1 {
-  font-size: 1.6rem;
-}
-
-body.drive-mode .status-pill-group {
-  gap: 4px;
-}
-
-body.drive-mode .status-pill {
-  padding: 4px 8px;
-  font-size: 0.62rem;
-}
-
-.quick-buttons {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
-
-body.drive-mode .hero-gauge:first-child {
-  transform: scale(1.06);
-  border-color: rgba(0, 234, 255, 0.55);
-  box-shadow:
-    0 0 22px rgba(0, 234, 255, 0.22);
-}
-
-#navMapEmbed {
-  width: 100%;
-  height: 240px;
-  overflow: hidden;
-  border-radius: 22px;
-}
-
-#navMapEmbed iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-/* REVANTA PHONE DRIVE STACK FIX */
-
-.drive-layout {
-  padding-bottom: 20px;
-}
-
-.drive-right {
-  padding-bottom: 0;
-}
-
-#navMapEmbed,
-.mini-nav-box {
-  min-height: 220px;
-  height: 220px;
-}
-
-.quick-buttons {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 8px;
-}
-  .drive-layout {
-    gap: 18px;
-  }
-
-  .drive-right .command-panel {
-    padding: 14px;
-  }
-
-@media (max-width: 520px) {
-  #dashTab .gauge-grid {
-    gap: 8px;
-  }
-
-  #dashTab .gauge {
-    min-height: 118px;
-    padding: 12px;
-  }
-
-  #dashTab .gauge strong {
-    font-size: 1.65rem;
-  }
-
-  #navMapEmbed,
-  .mini-nav-box {
-    height: 150px;
-    min-height: 150px;
-  }
-
-  .mini-weather,
-  .copilot-mini {
-    min-height: 76px;
-  }
-
-  .drive-right {
-    gap: 8px;
-  }
-
-  .drive-right .command-panel {
-    padding: 10px;
-  }
-
-  .drive-right h3 {
-    font-size: 0.85rem;
-    margin-bottom: 6px;
-  }
-
-  .quick-buttons {
-    display: none;
-  }
-}
-
-/* FORCE RESTORE DASH QUICK CONTROLS */
-#dashTab .quick-buttons {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 8px !important;
-  margin-top: 10px !important;
-  margin-bottom: 16px !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-#dashTab .quick-buttons button {
-  display: block !important;
-  min-height: 42px !important;
-}
-
-.weather-radar-live {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: 10px;
-}
-
-.weather-temp {
-  font-size: 2.2rem;
-  font-weight: 800;
-  color: #ffffff;
-  text-shadow: 0 0 18px rgba(0,255,255,.6);
-}
-
-.weather-condition {
-  font-size: .95rem;
-  letter-spacing: 2px;
-  color: #ff7bff;
-  text-transform: uppercase;
-}
-
-/* REVANTA TACTICAL NAV PANEL */
-
-#navMapEmbed {
-  position: relative;
-  min-height: 170px;
-  height: 170px;
-  overflow: hidden;
-  border-radius: 22px;
-  border: 1px solid rgba(0, 234, 255, 0.32);
-  background:
-    radial-gradient(circle at center, rgba(0, 234, 255, 0.12), transparent 55%),
-    rgba(0, 0, 0, 0.38);
-}
-
-#navMapEmbed::before {
-  content: "NAV LINK";
-  position: absolute;
-  top: 10px;
-  left: 12px;
-  z-index: 2;
-  font-size: 0.65rem;
-  letter-spacing: 0.18em;
-  color: rgba(255, 255, 255, 0.78);
-}
-
-#navMapEmbed::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(rgba(0, 234, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 234, 255, 0.08) 1px, transparent 1px);
-  background-size: 28px 28px;
-  opacity: 0.35;
-}
-
-#navMapEmbed iframe {
-  width: 100%;
-  height: 100%;
-  border: 0;
-  border-radius: 22px;
-}
-
-/* REVANTA DRIVING MODE TRANSITIONS */
-
-body.drive-mode .top-bar {
-  transform: scale(0.97);
-  opacity: 0.92;
-}
-
-body.drive-mode .hero-gauge:first-child {
-  transform: scale(1.04);
-  border-color: rgba(0, 234, 255, 0.75);
-}
-
-body.drive-mode .bottom-nav {
-  opacity: 0.86;
-}
-
-body.drive-mode #dashTab .gauge {
-  transition:
-    transform 0.28s ease,
-    box-shadow 0.28s ease,
-    border-color 0.28s ease;
-}
-
-body.drive-mode #dashTab .gauge-grid {
-  gap: 7px;
-}
-
-.driving-hud {
-  margin-bottom: 14px;
-  padding: 18px;
-  border-radius: 24px;
-  border: 1px solid rgba(0, 234, 255, 0.45);
-  background: rgba(0, 0, 0, 0.55);
-  box-shadow: 0 0 28px rgba(0, 234, 255, 0.22);
-}
-
-body.drive-mode .driving-hud {
-  display: block !important;
-}
-
-.hud-speed {
-  text-align: center;
-}
-
-.hud-speed span {
-  color: var(--accent2);
-  letter-spacing: 4px;
-  font-weight: 900;
-}
-
-.hud-speed strong {
-  display: block;
-  font-size: 6rem;
-  line-height: 1;
-  color: #fff;
-  text-shadow: 0 0 30px var(--accent);
-}
-
-.hud-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.hud-box,
-.hud-nav {
-  padding: 12px;
-  border-radius: 18px;
-  border: 1px solid rgba(0, 234, 255, 0.28);
-  background: rgba(255,255,255,0.04);
-  text-align: center;
-}
-
-.nav-direction-panel {
-  padding: 14px;
-  border-radius: 20px;
-  border: 1px solid rgba(0, 234, 255, 0.35);
-  background: rgba(0, 0, 0, 0.45);
-  box-shadow: 0 0 20px rgba(0, 234, 255, 0.14);
-}
-
-.nav-direction-header,
-.nav-eta-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.nav-next-turn {
-  margin: 12px 0;
-  padding: 12px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.04);
-  text-align: center;
-}
-
-.nav-direction-panel span,
-.nav-direction-panel label {
-  color: var(--accent2);
-  font-size: 0.75rem;
-  letter-spacing: 2px;
-  font-weight: 900;
-}
-
-.nav-direction-panel strong {
-  color: #fff;
-}
-
-.boot-sequence {
-  display: grid;
-  gap: 8px;
-  margin: 16px 0;
-  text-align: left;
-}
-
-.boot-line {
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 234, 255, 0.22);
-  background: rgba(0,0,0,0.28);
-  color: var(--accent);
-  font-size: 0.78rem;
-  letter-spacing: 0.14em;
-  font-weight: 900;
-  opacity: 0;
-  transform: translateX(-12px);
-  animation: bootLineIn 0.5s ease forwards;
-}
-
-.boot-line:nth-child(1) { animation-delay: 0.15s; }
-.boot-line:nth-child(2) { animation-delay: 0.35s; }
-.boot-line:nth-child(3) { animation-delay: 0.55s; }
-.boot-line:nth-child(4) { animation-delay: 0.75s; }
-.boot-line:nth-child(5) { animation-delay: 0.95s; }
-
-@keyframes bootLineIn {
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.command-log-card{
-  margin-top:16px;
-  padding:16px;
-  border-radius:18px;
-  border:1px solid rgba(0,255,255,0.25);
-  background:rgba(0,0,0,0.45);
-  backdrop-filter:blur(10px);
-}
-
-.command-log-card h3{
-  color:#ff66ff;
-  margin-bottom:10px;
-  letter-spacing:2px;
-}
-
-#commandLog{
-  color:#d7faff;
-  font-size:13px;
-  white-space:pre-wrap;
-  word-break:break-word;
-}
-
-.graph-wrap {
-  margin-top: 18px;
-}
-
-.graph-wrap label {
-  display: block;
-  margin-bottom: 8px;
-  color: #f7943d;
-  font-size: 0.85rem;
-  letter-spacing: 1px;
-}
-
-.graph-wrap canvas {
-  width: 100%;
-  height: 70px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(247,148,61,0.2);
-  border-radius: 14px;
-}
-
-.performance-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-  margin-bottom: 18px;
-}
-
-.performance-card {
-  background: rgba(5, 10, 20, 0.92);
-  border: 1px solid rgba(0, 255, 255, 0.22);
-  border-radius: 22px;
-  padding: 18px;
-  box-shadow: 0 0 18px rgba(0,255,255,0.12);
-}
-
-.performance-card span {
-  display: block;
-  font-size: 0.72rem;
-  letter-spacing: 2px;
-  color: #b86cff;
-  margin-bottom: 8px;
-}
-
-.wide-performance {
-  grid-column: span 2;
-}
-
-.performance-card strong {
-  display: block;
-  font-size: 1.6rem;
-  color: #ffffff;
-}
-
-.performance-card small {
-  color: #8ea3b8;
-  font-size: 0.78rem;
-}
-
-.hero-performance {
-  grid-column: span 2;
-  text-align: center;
-  padding: 24px;
-}
-
-.hero-performance strong {
-  font-size: 2.2rem;
-  color: #00e5ff;
-}
-
-/* REVANTA BOOT SCREEN - CLEAN FINAL */
-
+/* BOOT / STARTUP */
 .boot-screen {
   position: fixed !important;
   inset: 0 !important;
@@ -2153,211 +197,1150 @@ body.drive-mode .driving-hud {
   box-shadow: 0 0 20px rgba(0,234,255,.35);
 }
 
-/* =========================
-   REVANTA PULL HISTORY
-========================= */
+/* SETUP */
+.setup-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background:
+    radial-gradient(circle at center, color-mix(in srgb, var(--accent) 18%, transparent), transparent 42%),
+    linear-gradient(180deg, #010208, var(--bg));
+  overflow-y: auto;
+}
 
-.pull-card {
-  margin-top: 12px;
-  padding: 14px;
+.setup-card {
+  width: min(94vw, 640px);
+  padding: 28px;
+  border-radius: 28px;
+  border: 1px solid var(--line-hot);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.055), transparent),
+    var(--panel2);
+  box-shadow:
+    inset 0 0 28px rgba(255,255,255,0.03),
+    0 0 34px color-mix(in srgb, var(--accent) 42%, transparent),
+    0 0 80px color-mix(in srgb, var(--accent2) 18%, transparent);
+  text-align: center;
+  backdrop-filter: blur(16px);
+}
+
+.setup-card h1 {
+  margin: 0;
+  font-size: clamp(34px, 8vw, 60px);
+  letter-spacing: 7px;
+  color: var(--accent);
+  text-shadow: 0 0 24px color-mix(in srgb, var(--accent) 68%, transparent);
+}
+
+.setup-card p {
+  margin: 10px 0 14px;
+  font-size: 14px;
+  letter-spacing: 3px;
+  color: var(--accent2);
+  text-transform: uppercase;
+}
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.setup-grid input,
+.setup-grid select,
+.nav-search input {
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line-soft);
+  background: rgba(0, 14, 28, 0.92);
+  color: var(--text);
+  font-weight: bold;
+  outline: none;
+}
+
+.setup-grid input::placeholder {
+  color: rgba(234,255,255,0.45);
+}
+
+.setup-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* MAIN SHELL */
+.dashboard {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-height: 100dvh;
+  padding: 8px;
+  padding-bottom: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-x: hidden;
+}
+
+.tab {
+  display: none;
+  width: 100%;
+  padding-bottom: 170px;
+}
+
+.tab.active {
+  display: block !important;
+}
+
+/* HEADER */
+.top-bar {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.055), transparent),
+    var(--panel);
+  border: 1px solid var(--line-soft);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 20%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+.top-bar.compact-top {
+  padding: max(6px, env(safe-area-inset-top)) 14px 8px;
+  margin-bottom: 12px;
   border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(18, 22, 28, 0.92), rgba(10, 12, 16, 0.88));
+  border: 1px solid rgba(0, 225, 255, 0.18);
+  box-shadow:
+    0 0 18px rgba(0, 225, 255, 0.08),
+    inset 0 0 12px rgba(255,255,255,0.02);
+}
 
-  border: 1px solid rgba(0, 234, 255, 0.28);
+.top-bar h1,
+.vehicle-title h1 {
+  margin: 0;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+  font-size: clamp(25px, 7vw, 34px);
+  line-height: 1;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 65%, transparent);
+}
 
+.top-bar p,
+.vehicle-title p {
+  margin: 4px 0 0;
+  color: var(--accent2);
+  letter-spacing: 0.22em;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.status-pill-group,
+.top-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.status-pill {
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  border: 1px solid var(--line-soft);
+  background: rgba(255,255,255,0.04);
+}
+
+.top-actions button {
+  flex: 1;
+  min-width: 92px;
+}
+
+/* TYPOGRAPHY */
+h2 {
+  margin: 0 0 8px;
+  color: var(--accent);
+  letter-spacing: 3px;
+  font-size: 22px;
+  line-height: 1.05;
+  text-shadow: 0 0 16px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+h3 {
+  margin: 10px 0 7px;
+  color: var(--accent2);
+  letter-spacing: 2px;
+  font-size: 17px;
+}
+
+.note,
+.performance-card small,
+.copilot-card small,
+.diagnostic-card small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* BUTTONS */
+button,
+.btn {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line-hot);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)),
+    rgba(0, 12, 24, 0.92);
+  color: var(--text);
+  border-radius: 16px;
+  min-height: 44px;
+  padding: 10px 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    transform .16s ease,
+    border-color .2s ease,
+    box-shadow .2s ease,
+    background .2s ease;
+  box-shadow:
+    inset 0 0 14px rgba(255,255,255,0.03),
+    0 0 14px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+button:hover,
+.btn:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 92%, white);
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--accent) 52%, transparent),
+    inset 0 0 18px rgba(255,255,255,0.04);
+}
+
+button:active,
+.btn:active {
+  transform: scale(.985);
+}
+
+button::after,
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: -120%;
+  background:
+    linear-gradient(
+      120deg,
+      transparent,
+      rgba(255,255,255,0.22),
+      transparent
+    );
+  transform: rotate(12deg);
+  transition: transform .8s ease;
+}
+
+button:hover::after,
+.btn:hover::after {
+  transform: translateX(210%) rotate(12deg);
+}
+
+/* GRID */
+.grid-2,
+.grid-3,
+.grid-4 {
+  display: grid;
+  gap: 8px;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* GAUGES */
+.gauge-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.gauge {
+  position: relative;
+  overflow: hidden;
+  min-height: 104px;
+  border-radius: 20px;
+  padding: 12px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04), transparent),
+    var(--panel2);
+  border: 1px solid var(--line-soft);
+  box-shadow:
+    inset 0 0 20px rgba(255,255,255,0.02),
+    0 0 18px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.gauge::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      120deg,
+      transparent,
+      rgba(255,255,255,0.03),
+      transparent
+    );
+  opacity: .6;
+  pointer-events: none;
+}
+
+.gauge-label {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.gauge strong {
+  display: block;
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.gauge small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.hero-gauge {
+  min-height: 128px;
+}
+
+.hero-gauge strong {
+  font-size: 48px;
+}
+
+.small-gauge strong {
+  font-size: 24px;
+}
+
+/* LIVE STATUS */
+.live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.live-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow:
+    0 0 10px var(--success),
+    0 0 20px var(--success);
+  animation: pulseLive 1.2s infinite;
+}
+
+@keyframes pulseLive {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.4);
+    opacity: .55;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* PERFORMANCE */
+.performance-grid,
+.copilot-grid,
+.diagnostic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.performance-card,
+.copilot-card,
+.diagnostic-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 94px;
+  padding: 12px;
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.03), transparent),
+    var(--panel2);
+  border: 1px solid var(--line-soft);
+}
+
+.performance-card strong,
+.copilot-card strong,
+.diagnostic-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+}
+
+/* COMMAND LOG */
+.command-log {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid var(--line-soft);
+  background: rgba(0, 0, 0, 0.36);
+  color: var(--success);
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+/* NAVIGATION */
+.nav-search {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.nav-map,
+#mapFrame {
+  width: 100%;
+  min-height: 260px;
+  border: 0;
+  border-radius: 22px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--line-soft);
+}
+
+.nav-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* MEDIA */
+.media-card {
+  padding: 16px;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.03), transparent),
+    var(--panel2);
+  border: 1px solid var(--line-soft);
+}
+
+.media-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+/* DIAGNOSTICS */
+.dtc-card {
+  margin-top: 10px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 120, 120, 0.26);
   background:
     linear-gradient(
       180deg,
-      rgba(18, 22, 28, 0.96),
-      rgba(8, 10, 14, 0.96)
+      rgba(255,80,80,0.06),
+      rgba(0,0,0,0.2)
     );
-
   box-shadow:
-    0 0 18px rgba(0, 234, 255, 0.14),
-    inset 0 0 18px rgba(255,255,255,0.03);
+    0 0 18px rgba(255,80,80,0.08);
 }
 
-.pull-card strong {
-  display: block;
-  margin-bottom: 8px;
-
-  color: var(--accent);
-
+.dtc-card h3 {
+  margin-top: 0;
+  color: #ff8080;
   letter-spacing: 2px;
-  font-size: 1rem;
 }
 
-.pull-card p {
-  margin: 4px 0;
-
-  color: var(--text);
-
-  font-size: 0.88rem;
+.dtc-card p,
+.dtc-card li {
+  color: #ffd8d8;
+  line-height: 1.5;
 }
 
-.pull-replay-panel {
-  margin-top: 14px;
+.dtc-card ul {
+  margin: 8px 0 0 18px;
+  padding: 0;
+}
+
+.code-good {
+  color: var(--success);
+}
+
+.code-warning {
+  color: var(--warning);
+}
+
+.code-danger {
+  color: var(--danger);
+}
+
+/* COPILOT / COMMAND PANELS */
+.copilot-box,
+.command-panel,
+.diagnostics-box,
+.settings-panel {
   padding: 14px;
-  border-radius: 18px;
-  background: rgba(0,0,0,0.45);
-  border: 1px solid rgba(0,255,255,0.18);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.035), transparent),
+    var(--panel2);
+  border: 1px solid var(--line-soft);
+  box-shadow:
+    inset 0 0 18px rgba(255,255,255,0.02),
+    0 0 18px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
-.pull-stat-grid {
+#commandLog,
+#copilotOutput,
+#diagnosticResults,
+#rawDtcOutput,
+#codeHistoryOutput {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(92vw, 720px);
+  z-index: 9999;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border-radius: 22px;
+  background: rgba(5, 8, 12, 0.82);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(0, 234, 255, 0.42);
+  box-shadow:
+    0 0 24px rgba(0, 234, 255, 0.22),
+    inset 0 0 20px rgba(0, 234, 255, 0.06);
+}
+
+.bottom-nav button {
+  min-height: 52px;
+  padding: 10px 8px;
+  font-size: 0.78rem;
+  letter-spacing: 1px;
+  border-radius: 16px;
+  opacity: 0.84;
+}
+
+body.tab-dash .bottom-nav button:nth-child(1),
+body.tab-performance .bottom-nav button:nth-child(2),
+body.tab-diagnostics .bottom-nav button:nth-child(3),
+body.tab-command .bottom-nav button:nth-child(4),
+body.tab-copilot .bottom-nav button:nth-child(5),
+body.tab-nav .bottom-nav button:nth-child(6),
+body.tab-upgrade .bottom-nav button:nth-child(7),
+body.tab-settings .bottom-nav button:nth-child(8) {
+  opacity: 1;
+  color: #ffffff;
+  border-color: rgba(0, 234, 255, 0.9);
+  box-shadow:
+    0 0 18px rgba(0, 234, 255, 0.45),
+    inset 0 0 18px rgba(0, 234, 255, 0.12);
+}
+
+/* DRIVE LAYOUT */
+.drive-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding-bottom: 20px;
+}
+
+.drive-center {
+  min-width: 0;
+}
+
+.drive-right {
+  display: grid;
+  gap: 12px;
+  padding-bottom: 0;
+}
+
+.mini-nav-box,
+.mini-weather,
+.copilot-mini {
+  min-height: 92px;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 234, 255, 0.22);
+  background: rgba(0, 0, 0, 0.32);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: var(--muted);
+}
+
+#navMapEmbed,
+.mini-nav-box {
+  position: relative;
+  min-height: 170px;
+  height: 170px;
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid rgba(0, 234, 255, 0.32);
+  background:
+    radial-gradient(circle at center, rgba(0, 234, 255, 0.12), transparent 55%),
+    rgba(0, 0, 0, 0.38);
+}
+
+#navMapEmbed iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 22px;
+}
+
+#navMapEmbed::before {
+  content: "NAV LINK";
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  z-index: 2;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+#navMapEmbed::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(0, 234, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 234, 255, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.35;
+}
+
+.mini-weather strong {
+  display: block;
+  font-size: 2rem;
+  color: #fff;
+}
+
+.weather-radar-live {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 10px;
+}
+
+.weather-temp {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 0 0 18px rgba(0,255,255,.6);
+}
+
+.weather-condition {
+  font-size: .95rem;
+  letter-spacing: 2px;
+  color: #ff7bff;
+  text-transform: uppercase;
+}
+
+/* DRIVING HUD */
+.driving-hud {
+  margin-bottom: 14px;
+  padding: 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(0, 234, 255, 0.45);
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 28px rgba(0, 234, 255, 0.22);
+}
+
+body.drive-mode .driving-hud {
+  display: block !important;
+}
+
+.hud-speed {
+  text-align: center;
+}
+
+.hud-speed span {
+  color: var(--accent2);
+  letter-spacing: 4px;
+  font-weight: 900;
+}
+
+.hud-speed strong {
+  display: block;
+  font-size: clamp(4rem, 14vw, 6rem);
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 0 30px var(--accent);
+}
+
+.hud-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  margin-bottom: 14px;
 }
 
-.pull-stat {
-  padding: 10px;
-  border-radius: 14px;
-  background: rgba(0,0,0,0.35);
-  text-align: center;
-}
-
-.pull-stat span {
-  display: block;
-  font-size: 11px;
-  opacity: 0.7;
-  margin-bottom: 4px;
-}
-
-.pull-stat strong {
-  color: #00e5ff;
-  font-size: 16px;
-}
-
-.hidden {
-  display: none;
-}
-
-#replayGraph {
-  width: 100%;
-  border-radius: 14px;
-  background: rgba(0,0,0,0.25);
-}
-
-.best-pull-badge {
-  display: inline-block;
-  margin: 6px 0;
-  padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(247, 148, 61, 0.75);
-  color: #f7c057;
-  font-size: 0.65rem;
-  font-weight: 900;
-  letter-spacing: 1px;
-  box-shadow: 0 0 12px rgba(247, 148, 61, 0.28);
-}
-
-.pull-card button {
-  margin-top: 8px;
-  min-height: 32px;
-  font-size: 0.65rem;
-}
-
-.pull-analytics {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.pull-stat {
-  background: rgba(0, 8, 20, 0.75);
-  border: 1px solid rgba(0, 229, 255, 0.15);
-  border-radius: 14px;
-  padding: 10px;
-  text-align: center;
-}
-
-.pull-stat span {
-  display: block;
-  font-size: 11px;
-  opacity: 0.7;
-  margin-bottom: 4px;
-}
-
-.pull-stat strong {
-  color: #00e5ff;
-  font-size: 15px;
-}
-
-.compare-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.compare-side {
-  background: rgba(0, 8, 20, 0.75);
-  border: 1px solid rgba(0, 229, 255, 0.15);
-  border-radius: 14px;
+.hud-box,
+.hud-nav {
   padding: 12px;
-}
-
-.compare-side h4 {
-  color: #00e5ff;
-  margin: 0 0 10px;
-}
-
-.compare-side p {
-  margin: 5px 0;
-}
-
-.compare-winner {
-  margin-top: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 234, 255, 0.28);
+  background: rgba(255,255,255,0.04);
   text-align: center;
-  font-weight: 900;
-  color: #f7c057;
 }
 
-.backup-actions {
-  display: flex;
+/* DRIVE STATES */
+body.drive-idle {
+  --driveGlow: rgba(0, 180, 255, 0.10);
+}
+
+body.drive-active {
+  --driveGlow: rgba(0, 180, 255, 0.18);
+}
+
+body.drive-hard {
+  --driveGlow: rgba(255, 120, 0, 0.22);
+}
+
+body.drive-insane {
+  --driveGlow: rgba(255, 40, 0, 0.30);
+}
+
+body.drive-mode .top-bar {
+  transform: scale(0.97);
+  opacity: 0.92;
+}
+
+body.drive-mode .hero-gauge:first-child {
+  transform: scale(1.04);
+  border-color: rgba(0, 234, 255, 0.75);
+}
+
+body.drive-mode .bottom-nav {
+  opacity: 0.86;
+}
+
+.gauge,
+.performance-card,
+.diagnostic-card,
+.command-panel,
+.copilot-box,
+.nav-layout {
+  box-shadow:
+    inset 0 0 18px rgba(255,255,255,0.03),
+    0 0 18px var(--driveGlow);
+}
+
+/* OBD STATES */
+body.obd-connected #obdStatus,
+body.obd-connected #sourceStatus {
+  color: #9dffcf;
+  border-color: rgba(80, 255, 170, 0.75);
+  box-shadow: 0 0 14px rgba(80, 255, 170, 0.28);
+}
+
+body.obd-connecting #obdStatus,
+body.obd-connecting #sourceStatus {
+  color: #ffd27a;
+  border-color: rgba(255, 190, 80, 0.75);
+  box-shadow: 0 0 14px rgba(255, 190, 80, 0.24);
+}
+
+body.obd-failed #obdStatus,
+body.obd-failed #sourceStatus {
+  color: #ff8b8b;
+  border-color: rgba(255, 80, 80, 0.75);
+  box-shadow: 0 0 14px rgba(255, 80, 80, 0.25);
+}
+
+/* VOICE / IMMERSIVE */
+body.voice-listening .top-bar {
+  border-color: rgba(0, 255, 180, 0.65);
+  box-shadow:
+    0 0 24px rgba(0, 255, 180, 0.18),
+    inset 0 0 18px rgba(0, 255, 180, 0.06);
+}
+
+body.voice-listening .status-pill-group {
+  animation: voicePulse 1s ease-in-out infinite;
+}
+
+@keyframes voicePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
+}
+
+body.immersive-mode .top-bar {
+  opacity: 0.88;
+  transform: scale(0.985);
+}
+
+body.immersive-mode .bottom-nav {
+  bottom: 8px;
+  opacity: 0.92;
+}
+
+body.immersive-mode .dashboard {
+  padding-top: 6px;
+}
+
+/* PRO HEALTH */
+.pro-health-panel,
+.pro-garage-panel,
+.pro-calibration-panel {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(10,15,20,0.96),
+      rgba(5,8,12,0.98)
+    );
+  border: 1px solid rgba(0,180,255,0.22);
+  border-radius: 22px;
+  padding: 18px;
+  margin-bottom: 18px;
+  box-shadow:
+    0 0 22px rgba(0,140,255,0.10),
+    inset 0 0 18px rgba(0,120,255,0.05);
+  backdrop-filter: blur(10px);
+}
+
+.pro-health-panel button,
+.pro-garage-panel button,
+.pro-calibration-panel button {
+  margin-top: 10px;
+}
+
+.pro-ai-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
   gap: 10px;
   margin-top: 12px;
 }
 
-.backup-actions button {
-  flex: 1;
-}
-
-.pro-garage-panel {
-  margin-top: 14px;
-}
-
-.garage-card {
-  margin-top: 12px;
+.pro-ai-card {
   padding: 14px;
   border-radius: 18px;
-  border: 1px solid rgba(247, 148, 61, 0.28);
-  background: rgba(10, 8, 6, 0.65);
-  box-shadow: 0 0 16px rgba(247, 148, 61, 0.12);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0.03),
+      rgba(255,255,255,0.01)
+    );
+  border: 1px solid rgba(0,180,255,0.18);
 }
 
-.garage-card strong {
+.pro-ai-label {
   display: block;
-  color: #f7c057;
-  letter-spacing: 1.5px;
-  margin-bottom: 8px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin-bottom: 6px;
 }
 
-.garage-card p {
-  margin: 4px 0;
-}
-
-.active-vehicle-box {
-  margin: 10px 0 14px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: rgba(247, 148, 61, 0.08);
-  border: 1px solid rgba(247, 148, 61, 0.25);
+.pro-ai-card strong {
+  font-size: 22px;
   color: #ffffff;
 }
 
-.active-vehicle-box strong {
-  color: #f7c057;
-  letter-spacing: 1px;
+.pro-health-report {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(0,0,0,0.34);
+  border: 1px solid rgba(0,180,255,0.18);
+  line-height: 1.6;
+}
+
+/* GARAGE */
+#proGarageList {
+  display: grid;
+  gap: 14px;
+}
+
+.garage-card {
+  padding: 18px;
+  border-radius: 20px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0.03),
+      transparent
+    ),
+    rgba(5,10,18,0.92);
+
+  border: 1px solid rgba(247,192,87,0.18);
+
+  box-shadow:
+    0 0 18px rgba(247,192,87,0.08);
+}
+
+.garage-card h3 {
+  margin-top: 0;
+  color: var(--gold);
+}
+
+.garage-card p {
+  margin: 5px 0;
+  line-height: 1.45;
+}
+
+.garage-card button {
+  margin-right: 8px;
+  margin-top: 10px;
+}
+
+/* CALIBRATION */
+.calibration-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.calibration-box {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(0,180,255,0.18);
+}
+
+.calibration-box span {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.calibration-box strong {
+  font-size: 22px;
+}
+
+/* ANIMATIONS */
+.glow {
+  animation: softGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes softGlow {
+  from {
+    box-shadow:
+      0 0 12px rgba(0,180,255,0.12);
+  }
+
+  to {
+    box-shadow:
+      0 0 28px rgba(0,180,255,0.22);
+  }
+}
+
+.scan-pulse {
+  animation: scanPulse 1.4s infinite;
+}
+
+@keyframes scanPulse {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: .55;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+/* TABLETS */
+@media (min-width: 700px) {
+
+  .dashboard {
+    padding: 12px;
+    padding-bottom: 190px;
+  }
+
+  .gauge-grid {
+    grid-template-columns: repeat(3, minmax(0,1fr));
+  }
+
+  .performance-grid,
+  .copilot-grid,
+  .diagnostic-grid {
+    grid-template-columns: repeat(3, minmax(0,1fr));
+  }
+
+  .drive-layout {
+    grid-template-columns:
+      minmax(0,1.4fr)
+      minmax(320px,.8fr);
+  }
+
+  .top-bar {
+    grid-template-columns:
+      1fr auto;
+    align-items: center;
+  }
+
+  .setup-actions {
+    grid-template-columns: repeat(2,1fr);
+  }
+}
+
+/* BIGGER SCREENS */
+@media (min-width: 1100px) {
+
+  .gauge-grid {
+    grid-template-columns: repeat(4, minmax(0,1fr));
+  }
+
+  .performance-grid,
+  .copilot-grid,
+  .diagnostic-grid {
+    grid-template-columns: repeat(4, minmax(0,1fr));
+  }
+
+  .dashboard {
+    max-width: 1700px;
+    margin: 0 auto;
+  }
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+
+  .pro-ai-grid,
+  .calibration-grid,
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .bottom-nav {
+    width: calc(100vw - 16px);
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .bottom-nav button {
+    font-size: 10px;
+    min-height: 48px;
+    padding: 8px 4px;
+  }
+
+  .hero-gauge strong {
+    font-size: 38px;
+  }
+
+  .gauge strong {
+    font-size: 28px;
+  }
+
+  .top-bar h1 {
+    font-size: 26px;
+  }
+}
+
+/* SMALL PHONES */
+@media (max-width: 520px) {
+
+  .dashboard {
+    padding: 7px;
+    padding-bottom: 170px;
+  }
+
+  .gauge {
+    min-height: 84px;
+    padding: 8px;
+  }
+
+  .hero-gauge {
+    min-height: 96px;
+  }
+
+  .hero-gauge strong {
+    font-size: 34px;
+  }
+
+  .gauge strong {
+    font-size: 24px;
+  }
+
+  .performance-card,
+  .copilot-card,
+  .diagnostic-card {
+    min-height: 84px;
+  }
+
+  .performance-card strong,
+  .copilot-card strong,
+  .diagnostic-card strong {
+    font-size: 20px;
+  }
+
+  button {
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+
+  .status-pill {
+    font-size: 9px;
+  }
+
+  .top-bar h1 {
+    font-size: 22px;
+  }
 }

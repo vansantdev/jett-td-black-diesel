@@ -3529,6 +3529,71 @@ function updateLiveMetrics({ rpm, speed, boost, maf, coolant, voltage, intake, f
 
   saveGraphPoint(liveMetrics);
   updateDrivingState();
+  runLivePerformanceIntelligence();
+}
+
+function runLivePerformanceIntelligence() {
+  if (!hasPro()) return;
+
+  const rpm = liveMetrics.rpm || 0;
+  const speed = liveMetrics.speed || 0;
+  const boost = liveMetrics.boost || 0;
+  const maf = liveMetrics.maf || 0;
+  const coolant = liveMetrics.coolant || 0;
+  const voltage = liveMetrics.voltage || 0;
+  const threatLevel = $("threatLevel");
+  const systemConfidence = $("systemConfidence");
+  const turboEfficiency = $("turboEfficiency");
+  const drivetrainStatus = $("drivetrainStatus");
+
+  if (coolant >= 230) {
+    if (threatLevel) threatLevel.textContent = "CRITICAL";
+    if (drivetrainStatus) drivetrainStatus.textContent = "OVERHEATING";
+    if (systemConfidence) systemConfidence.textContent = "42%";
+    setValue("copilotStatus", "CRITICAL: Coolant overheating risk.");
+    return;
+  }
+
+  if (voltage > 0 && voltage < 12) {
+    if (threatLevel) threatLevel.textContent = "WARNING";
+    if (systemConfidence) systemConfidence.textContent = "68%";
+    setValue("copilotStatus", "WARNING: Low voltage detected.");
+    return;
+  }
+
+  if (rpm > 2500 && boost < 2) {
+    if (turboEfficiency) turboEfficiency.textContent = "LOW";
+    if (threatLevel) threatLevel.textContent = "WARNING";
+    setValue("copilotStatus", "PRO ALERT: Low boost under load.");
+    return;
+  }
+
+  if (rpm > 2200 && boost > 8 && maf > 0 && maf < 25) {
+    setValue("copilotStatus", "PRO ALERT: Boost / MAF mismatch.");
+    return;
+  }
+
+  if (boost >= 18) {
+    setValue("copilotStatus", "Strong boost event detected.");
+    return;
+  }
+
+  if (rpm >= 3200 && boost >= 10) {
+    if (turboEfficiency) turboEfficiency.textContent = "HIGH";
+    if (drivetrainStatus) drivetrainStatus.textContent = "PERFORMANCE";
+    if (systemConfidence) systemConfidence.textContent = "98%";
+    setValue("copilotStatus", "Strong pull detected.");
+    return;
+  }
+
+  if (speed > 0 || rpm > 0) {
+    setValue("copilotStatus", "Pro live intelligence monitoring.");
+  }
+
+  if (threatLevel) threatLevel.textContent = "LOW";
+  if (systemConfidence) systemConfidence.textContent = "100%";
+  if (turboEfficiency) turboEfficiency.textContent = "NORMAL";
+  if (drivetrainStatus) drivetrainStatus.textContent = "STABLE";
 }
 
 function saveGraphPoint(metrics) {
@@ -3570,6 +3635,27 @@ function getActiveGarageVehicleName() {
     || "Revanta Vehicle";
 }
 
+function getActiveCalibration() {
+  const vehicles = getSavedVehicles();
+
+  const activeVehicle =
+    localStorage.getItem("revantaActiveGarageVehicle");
+
+  const vehicle = vehicles.find(
+    v => v.name === activeVehicle
+  );
+
+  return (
+    vehicle?.calibration || {
+      boostOffset: 0,
+      coolantOffset: 0,
+      speedCorrection: 1,
+      rpmSmoothing: 1,
+      mafCorrection: 1
+    }
+  );
+}
+
 function getVehiclePullKey(vehicleName) {
   return `revantaPulls_${
     vehicleName.replace(/\s+/g, "_").toLowerCase()
@@ -3586,6 +3672,25 @@ function getActiveVehiclePulls() {
   );
 }
 
+function getActiveVehicleStatsKey() {
+  return `revantaStats_${getActiveGarageVehicleName()
+    .replace(/\s+/g, "_")
+    .toLowerCase()}`;
+}
+
+function getActiveVehicleStats() {
+  return JSON.parse(
+    localStorage.getItem(getActiveVehicleStatsKey()) || "{}"
+  );
+}
+
+function saveActiveVehicleStats(stats) {
+  localStorage.setItem(
+    getActiveVehicleStatsKey(),
+    JSON.stringify(stats)
+  );
+}
+
 function saveActiveVehiclePulls(pulls) {
   const vehicleName = getActiveGarageVehicleName();
 
@@ -3598,17 +3703,49 @@ function saveActiveVehiclePulls(pulls) {
 window.saveActiveVehiclePulls = saveActiveVehiclePulls;
 window.getActiveVehiclePulls = getActiveVehiclePulls;
 
+function calculatePullGrade() {
+  const boost = liveMetrics.peakBoost || 0;
+  const rpm = performance.maxRpm || 0;
+  const speed = liveMetrics.topSpeed || 0;
+
+  let score = 0;
+
+  score += boost * 3;
+  score += rpm / 250;
+  score += speed / 4;
+
+  if (score >= 120) return "S";
+  if (score >= 95) return "A";
+  if (score >= 75) return "B";
+  if (score >= 55) return "C";
+
+  return "D";
+}
+
+function calculateTurboEfficiency() {
+  const boost = liveMetrics.peakBoost || 0;
+  const rpm = performance.maxRpm || 1;
+
+  const efficiency =
+    (boost / rpm) * 10000;
+
+  return efficiency.toFixed(1);
+}
+
 function savePullSnapshot() {
 
   if (!requirePlus("Pull history")) return;
 
   const snapshot = {
-    timestamp: Date.now(),
-    peakBoost: performance.peakBoost,
-    maxRpm: performance.maxRpm,
-    topSpeed,
-    graph: [...liveGraphData]
-  };
+  timestamp: Date.now(),
+  peakBoost: performance.peakBoost,
+  maxRpm: performance.maxRpm,
+  topSpeed,
+  graph: [...liveGraphData],
+
+  grade: calculatePullGrade(),
+  efficiency: calculateTurboEfficiency()
+};
 
   savedPulls.unshift(snapshot);
 
@@ -3617,6 +3754,30 @@ function savePullSnapshot() {
   vehiclePulls.unshift(snapshot);
 
   saveActiveVehiclePulls(vehiclePulls);
+
+  const vehicleStats = getActiveVehicleStats();
+
+  vehicleStats.bestBoost = Math.max(
+    vehicleStats.bestBoost || 0,
+    snapshot.peakBoost || 0
+  );
+
+  vehicleStats.bestRpm = Math.max(
+    vehicleStats.bestRpm || 0,
+    snapshot.maxRpm || 0
+  );
+
+  vehicleStats.topSpeed = Math.max(
+    vehicleStats.topSpeed || 0,
+    snapshot.topSpeed || 0
+  );
+
+  vehicleStats.pullCount = vehiclePulls.length;
+  vehicleStats.lastPull = new Date(snapshot.timestamp).toLocaleString();
+
+  vehicleStats.lastPull = new Date(snapshot.timestamp).toLocaleString();
+
+  saveActiveVehicleStats(vehicleStats);
 
   if (savedPulls.length > 10) {
     savedPulls.pop();
@@ -3764,6 +3925,10 @@ function renderPullHistory() {
         <p>Max RPM: ${pull.maxRpm ?? 0} RPM</p>
         <p>Top Speed: ${pull.topSpeed ?? 0} MPH</p>
         <p>Pull Score: ${calculatePullScore(pull)} / 100</p>
+        <p class="pull-grade grade-${pull.grade || "D"}">
+          Pull Grade: ${pull.grade || "N/A"}
+        </p>
+        <p>Turbo Efficiency: ${pull.efficiency || "--"}</p>
         <p>Grade: ${getPullGrade(calculatePullScore(pull))}</p>
         <p>Status: ${getPullStatus(calculatePullScore(pull))}</p>
 
@@ -3931,21 +4096,55 @@ function getSavedVehicles() {
   return JSON.parse(localStorage.getItem("revantaGarage") || "[]");
 }
 
+function detectVehicleType() {
+  const vin =
+    currentVehicleProfile.vin?.toUpperCase?.() || "";
+
+  if (
+    vin.includes("BRM") ||
+    vin.includes("TDI")
+  ) {
+    return "Diesel";
+  }
+
+  const boost = liveMetrics.boost || 0;
+
+  if (boost > 2) {
+    return "Turbocharged";
+  }
+
+  return "Naturally Aspirated";
+}
+
 function saveActiveVehicleToGarage() {
   if (!requirePro("Garage profiles")) return;
 
   const profile = getActiveProfile ? getActiveProfile() : {};
+  const vehicleStats = getActiveVehicleStats();
   const vehicles = getSavedVehicles();
 
   const vehicle = {
-    id: Date.now(),
-    name: profile.vehicleName || profile.commandName || "Revanta Vehicle",
-    vin: profile.vin || "Unknown VIN",
-    lastSeen: new Date().toLocaleString(),
-    bestBoost: performance?.peakBoost || 0,
-    topSpeed: topSpeed || 0,
-    pullCount: getActiveVehiclePulls().length
-  };
+  name: currentVehicleProfile.name,
+  vin: currentVehicleProfile.vin,
+  lastSeen: new Date().toLocaleString(),
+  bestBoost: vehicleStats.bestBoost || performance?.peakBoost || 0,
+  topSpeed: vehicleStats.topSpeed || topSpeed || 0,
+  pullCount: vehicleStats.pullCount || getActiveVehiclePulls().length,
+  bestRpm: vehicleStats.bestRpm || 0,
+  lastPull: vehicleStats.lastPull || "Never",
+  avgRpm: vehicleStats.avgRpm || 0,
+  avgBoost: vehicleStats.avgBoost || 0,
+
+  type: detectVehicleType(),
+  notes: "No notes yet",
+  calibration: {
+  boostOffset: 0,
+  coolantOffset: 0,
+  speedCorrection: 1,
+  rpmSmoothing: 1,
+  mafCorrection: 1
+}
+};
 
   vehicles.unshift(vehicle);
 
@@ -3980,7 +4179,17 @@ function renderProGarage() {
     <p>Last Seen: ${vehicle.lastSeen}</p>
     <p>Best Boost: ${vehicle.bestBoost} PSI</p>
     <p>Top Speed: ${vehicle.topSpeed} MPH</p>
+    <p>Best RPM: ${vehicle.bestRpm ?? "--"} RPM</p>
+    <p>Last Pull: ${vehicle.lastPull || "Never"}</p>
+    <p>Avg RPM: ${vehicle.avgRpm ?? "--"} RPM</p>
+    <p>Avg Boost: ${vehicle.avgBoost ?? "--"} PSI</p>
     <p>Pulls: ${vehicle.pullCount}</p>
+    <p>Lowest Voltage: ${vehicle.lowestVoltage ?? "--"} V</p>
+    <p>Highest Coolant: ${vehicle.highestCoolant ?? "--"} °F</p>
+    <p>Last Health Check: ${vehicle.lastHealthCheck || "Never"}</p>
+    <p>Type: ${vehicle.type || "Unknown"}</p>
+    <p>Notes: ${vehicle.notes || "No notes"}</p>
+    <p>Latest Report: ${vehicle.lastHealthReport || "No report saved"}</p>
 
     <button onclick="loadGarageVehiclePro(${index})">
       LOAD VEHICLE
@@ -3988,6 +4197,14 @@ function renderProGarage() {
 
     <button onclick="deleteGarageVehiclePro(${index})">
       DELETE
+    </button>
+
+    <button onclick="editGarageVehiclePro(${index})">
+      EDIT
+    </button>
+
+    <button onclick="saveVehicleHealthSnapshot(${index})">
+      HEALTH SNAPSHOT
     </button>
   </div>
 `).join("");
@@ -4033,9 +4250,291 @@ function deleteGarageVehiclePro(index) {
 window.loadGarageVehiclePro = loadGarageVehiclePro;
 window.deleteGarageVehiclePro = deleteGarageVehiclePro;
 
+function runProHealthReport() {
+  if (!requirePro("Pro health intelligence")) return;
+
+  const rpm = liveMetrics?.rpm ?? null;
+  const boost = liveMetrics?.boost ?? null;
+  const coolant = liveMetrics?.coolant ?? null;
+  const voltage = liveMetrics?.voltage ?? null;
+  const maf = liveMetrics?.maf ?? null;
+
+  const report = [];
+
+  let severity = "OK";
+
+  report.push(obdLive ? "OBD: LIVE" : "OBD: OFFLINE");
+
+  if (!obdLive) {
+    report.push("Vehicle systems unavailable.");
+  }
+
+  if (voltage == null) {
+    report.push("Voltage: No data");
+  } else if (voltage < 12) {
+    severity = "WARNING";
+    report.push("Voltage: LOW");
+  } else if (voltage > 15) {
+    report.push("Voltage: HIGH");
+  } else {
+    report.push("Voltage: OK");
+  }
+
+  if (coolant == null) {
+    report.push("Coolant: No data");
+  } else if (coolant > 230) {
+    severity = "CRITICAL";
+    report.push("Coolant: HOT");
+  } else {
+    report.push("Coolant: OK");
+  }
+
+  if (rpm == null) {
+    report.push("RPM Signal: No data");
+  } else {
+    report.push("RPM Signal: Detected");
+  }
+
+  if (boost == null) {
+    report.push("Boost Signal: No data");
+  } else if (boost < 2 && rpm > 2500) {
+    severity = "WARNING";
+    report.push("Warning: Possible boost leak");
+  } else {
+    report.push("Boost Signal: Detected");
+  }
+
+  if (maf == null) {
+    report.push("MAF Signal: No data");
+  } else if (maf < 5 && rpm > 2000) {
+    severity = "WARNING";
+    report.push("Warning: Weak MAF reading");
+  } else {
+    report.push("MAF Signal: Detected");
+  }
+
+  report.unshift(`SYSTEM STATUS: ${severity}`);
+
+  saveVehicleHealthReport(report);
+
+  $("proHealthReport").innerHTML = report
+    .map(item => `<p>${item}</p>`)
+    .join("");
+
+  speak("Pro health report complete.");
+}
+
+function saveVehicleHealthReport(report) {
+  const vehicles = getSavedVehicles();
+
+  const activeVehicle =
+    localStorage.getItem("revantaActiveGarageVehicle");
+
+  let index = vehicles.findIndex(
+    v => v.name === activeVehicle
+  );
+
+  if (index === -1) {
+    index = 0;
+  }
+
+if (!vehicles[index]) return;
+
+  vehicles[index].lastHealthReport = report.join(" | ");
+
+  vehicles[index].lastHealthCheck =
+    new Date().toLocaleString();
+
+  localStorage.setItem(
+    "revantaGarage",
+    JSON.stringify(vehicles)
+  );
+
+  renderProGarage();
+}
+
+window.runProHealthReport = runProHealthReport;
+
+function loadVehicleCalibration() {
+  const vehicles = getSavedVehicles();
+
+  const activeVehicle =
+    localStorage.getItem("revantaActiveGarageVehicle");
+
+  const vehicle = vehicles.find(
+    v => v.name === activeVehicle
+  );
+
+  if (!vehicle || !vehicle.calibration) {
+    $("calibrationInfo").innerHTML =
+      "No calibration profile found.";
+    return;
+  }
+
+  const cal = vehicle.calibration;
+
+  $("calibrationInfo").innerHTML = `
+    <p>Boost Offset: ${cal.boostOffset}</p>
+    <p>Coolant Offset: ${cal.coolantOffset}</p>
+    <p>Speed Correction: ${cal.speedCorrection}</p>
+    <p>RPM Smoothing: ${cal.rpmSmoothing}</p>
+    <p>MAF Correction: ${cal.mafCorrection}</p>
+  `;
+
+  speak("Calibration loaded.");
+}
+
+function editVehicleCalibration() {
+  const vehicles = getSavedVehicles();
+
+  const activeVehicle =
+    localStorage.getItem("revantaActiveGarageVehicle");
+
+  const index = vehicles.findIndex(
+    v => v.name === activeVehicle
+  );
+
+  if (index === -1) return;
+
+  const vehicle = vehicles[index];
+
+  if (!vehicle.calibration) {
+    vehicle.calibration = {};
+  }
+
+  vehicle.calibration.boostOffset =
+    Number(prompt(
+      "Boost offset",
+      vehicle.calibration.boostOffset ?? 0
+    ));
+
+  vehicle.calibration.coolantOffset =
+    Number(prompt(
+      "Coolant offset",
+      vehicle.calibration.coolantOffset ?? 0
+    ));
+
+  vehicle.calibration.speedCorrection =
+    Number(prompt(
+      "Speed correction",
+      vehicle.calibration.speedCorrection ?? 1
+    ));
+
+  vehicle.calibration.rpmSmoothing =
+    Number(prompt(
+      "RPM smoothing",
+      vehicle.calibration.rpmSmoothing ?? 1
+    ));
+
+  vehicle.calibration.mafCorrection =
+    Number(prompt(
+      "MAF correction",
+      vehicle.calibration.mafCorrection ?? 1
+    ));
+
+  localStorage.setItem(
+    "revantaGarage",
+    JSON.stringify(vehicles)
+  );
+
+  loadVehicleCalibration();
+
+  speak("Calibration updated.");
+}
+
+window.loadVehicleCalibration =
+  loadVehicleCalibration;
+
+window.editVehicleCalibration =
+  editVehicleCalibration;
+
+function editGarageVehiclePro(index) {
+  const vehicles = getSavedVehicles();
+
+  const vehicle = vehicles[index];
+
+  if (!vehicle) return;
+
+  const newType = prompt(
+    "Vehicle Type",
+    vehicle.type || ""
+  );
+
+  const newNotes = prompt(
+    "Vehicle Notes",
+    vehicle.notes || ""
+  );
+
+  vehicle.type = newType || vehicle.type;
+  vehicle.notes = newNotes || vehicle.notes;
+
+  localStorage.setItem(
+    "revantaGarage",
+    JSON.stringify(vehicles)
+  );
+
+  renderProGarage();
+
+  speak("Vehicle updated.");
+}
+
+window.editGarageVehiclePro = editGarageVehiclePro;
+
+function saveVehicleHealthSnapshot(index) {
+  if (!requirePro("Vehicle health snapshot")) return;
+
+  const vehicles = getSavedVehicles();
+  const vehicle = vehicles[index];
+
+  if (!vehicle) return;
+
+  vehicle.bestBoost = Math.max(vehicle.bestBoost || 0, liveMetrics?.boost || 0);
+  vehicle.topSpeed = Math.max(vehicle.topSpeed || 0, topSpeed || 0);
+
+  const voltage = liveMetrics?.voltage;
+  const coolant = liveMetrics?.coolant;
+
+  if (voltage != null) {
+    vehicle.lowestVoltage =
+      vehicle.lowestVoltage == null
+        ? voltage
+        : Math.min(vehicle.lowestVoltage, voltage);
+  }
+
+  if (coolant != null) {
+    vehicle.highestCoolant =
+      vehicle.highestCoolant == null
+        ? coolant
+        : Math.max(vehicle.highestCoolant, coolant);
+  }
+
+  vehicle.pullCount = getActiveVehiclePulls().length;
+  vehicle.lastHealthCheck = new Date().toLocaleString();
+
+  localStorage.setItem("revantaGarage", JSON.stringify(vehicles));
+
+  renderProGarage();
+
+  speak("Vehicle health snapshot saved.");
+}
+
+window.saveVehicleHealthSnapshot = saveVehicleHealthSnapshot;
+
 function updateActiveGarageVehicle(name) {
-  setValue("activeGarageVehicle", name || "Revanta Vehicle");
-  localStorage.setItem("revantaActiveGarageVehicle", name || "Revanta Vehicle");
+  const finalName = name || "Revanta Vehicle";
+
+  setValue("activeGarageVehicle", finalName);
+  localStorage.setItem("revantaActiveGarageVehicle", finalName);
+
+  const banner = $("vehicleIdentityBanner");
+
+  if (banner) {
+    banner.innerHTML = `
+      <strong>ACTIVE VEHICLE</strong>
+      <span>${finalName}</span>
+      <small>${currentVehicleProfile.vin || "VIN not scanned yet"}</small>
+    `;
+  }
 }
 
 window.updateActiveGarageVehicle = updateActiveGarageVehicle;
@@ -4281,6 +4780,19 @@ try {
             TDI_CALIBRATION.maxBoostPsi
           );
 
+    const calibration = getActiveCalibration();
+
+    const calibratedBoost =
+      boost === null ? null : boost + calibration.boostOffset;
+
+    let calibratedCoolant = null;
+
+    const calibratedSpeed =
+      speed === null ? null : speed * calibration.speedCorrection;
+
+    const calibratedMaf =
+      maf === null ? null : maf * calibration.mafCorrection;
+
     // =========================
     // UPDATE MAIN LIVE GAUGES
     // =========================
@@ -4302,15 +4814,15 @@ if (speed === null || speed === 0) {
 }
 
 if (finalSpeed !== null) {
-  smoothSetGauge("speedValue", finalSpeed);
-  updateSpeedStats(finalSpeed);
+  smoothSetGauge("speedValue", calibratedSpeed ?? finalSpeed);
+  updateSpeedStats(calibratedSpeed ?? finalSpeed);
 } else {
   setValue("speedValue", "--");
 }
 
     if (maf !== null) {
       liveGaugeProof.maf = true;
-      smoothSetGauge("mafValue", maf, 1);
+      smoothSetGauge("mafValue", calibratedMaf, 1);
     } else {
       setValue("mafValue", "--");
     }
@@ -4321,7 +4833,7 @@ if (finalSpeed !== null) {
 
   setValue(
   "boostValue",
-  Math.max(0, boost).toFixed(1)
+  Math.max(0, calibratedBoost).toFixed(1)
 );
 } else {
   if (Date.now() - lastBoostSeenAt > 2500) {
@@ -4396,10 +4908,13 @@ if (finalSpeed !== null) {
       }
 
       if (coolant !== null) {
+        calibratedCoolant =
+        coolant + calibration.coolantOffset;
+
         liveGaugeProof.coolant = true;
-        setValue("coolantValue", coolant);
+        setValue("coolantValue", `${calibratedCoolant} °F`);
       } else {
-        setValue("coolantValue", "--");
+        setValue("coolantValue", "-- °F");
       }
 
       if (intake !== null) {
@@ -4426,10 +4941,10 @@ if (finalSpeed !== null) {
 
     updateLiveMetrics({
       rpm,
-      speed,
-      boost,
-      maf,
-      coolant,
+      speed: calibratedSpeed,
+      boost: calibratedBoost,
+      maf: calibratedMaf,
+      coolant: calibratedCoolant,
       voltage,
       intake,
       fuel
@@ -4442,10 +4957,10 @@ if (finalSpeed !== null) {
     lastPollDuration = Math.round(Date.now() - pollStart);
     const hasRealData =
       rpm !== null ||
-      speed !== null ||
-      boost !== null ||
-      maf !== null ||
-      coolant !== null ||
+      calibratedSpeed !== null ||
+      calibratedBoost !== null ||
+      calibratedMaf !== null ||
+      calibratedCoolant !== null ||
       voltage !== null ||
       intake !== null ||
       fuel !== null;
